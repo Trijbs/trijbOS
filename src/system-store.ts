@@ -100,12 +100,13 @@ const defaultWindows: Record<AppId, WindowBounds> = {
 
 let persistTimer: number | undefined;
 let persistenceQueue = Promise.resolve();
+const timerHost = globalThis;
 
 function withPersistedWindows(windows: WindowState[]) {
   if (persistTimer) {
-    window.clearTimeout(persistTimer);
+    timerHost.clearTimeout(persistTimer);
   }
-  persistTimer = window.setTimeout(() => {
+  persistTimer = timerHost.setTimeout(() => {
     void saveSession(windows);
   }, 180);
 }
