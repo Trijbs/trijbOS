@@ -6,6 +6,7 @@ import { getFileTargetApp } from "./file-utils";
 import { toggleLauncherState, toggleNotificationsState } from "./shell-state";
 import {
   clearNotificationHistory,
+  deleteNotification,
   deleteFile,
   ensureStorageReady,
   loadFiles,
@@ -89,6 +90,8 @@ type SystemState = {
   resetWorkspace: () => Promise<void>;
   pushNotification: (item: Omit<NotificationItem, "id" | "createdAt">) => Promise<void>;
   clearNotifications: () => Promise<void>;
+  dismissNotification: (id: string) => Promise<void>;
+  markNotificationsRead: () => Promise<void>;
 };
 
 const defaultTheme: ThemePreference = {
@@ -144,6 +147,16 @@ function persistWorkspaceState(activeDirectoryId: string | null, selectedFileIds
   );
 }
 
+function markNotificationsReadState(notifications: NotificationItem[]) {
+  const unread = notifications.filter((item) => !item.readAt);
+  if (unread.length === 0) {
+    return notifications;
+  }
+
+  const readAt = new Date().toISOString();
+  return notifications.map((item) => (item.readAt ? item : { ...item, readAt }));
+}
+
 export const useSystemStore = create<SystemState>((set, get) => ({
   hydrated: false,
   launcherOpen: false,
@@ -176,7 +189,18 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     set((state) => toggleLauncherState(state, forced));
   },
   toggleNotifications(forced) {
-    set((state) => toggleNotificationsState(state, forced));
+    set((state) => {
+      const nextState = toggleNotificationsState(state, forced);
+      if (nextState.notificationsOpen) {
+        const notifications = markNotificationsReadState(state.notifications);
+        void Promise.all(notifications.map(async (item) => saveNotification(item)));
+        return {
+          ...nextState,
+          notifications,
+        };
+      }
+      return nextState;
+    });
   },
   setActiveDirectory(directoryId) {
     set((state) => {
@@ -490,6 +514,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     const next: NotificationItem = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
+      readAt: null,
       ...item,
     };
     await saveNotification(next);
@@ -498,5 +523,20 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   async clearNotifications() {
     await clearNotificationHistory();
     set({ notifications: [] });
+  },
+  async dismissNotification(id) {
+    await deleteNotification(id);
+    set((state) => ({
+      notifications: state.notifications.filter((item) => item.id !== id),
+    }));
+  },
+  async markNotificationsRead() {
+    const nextNotifications = markNotificationsReadState(get().notifications);
+    if (nextNotifications === get().notifications) {
+      return;
+    }
+
+    set({ notifications: nextNotifications });
+    await Promise.all(nextNotifications.map(async (item) => saveNotification(item)));
   },
 }));

@@ -17,6 +17,7 @@ export function Taskbar() {
   const toggleTaskbarWindow = useSystemStore((state) => state.toggleTaskbarWindow);
   const windows = useSystemStore((state) => state.windows);
   const notifications = useSystemStore((state) => state.notifications);
+  const unreadCount = notifications.filter((item) => !item.readAt).length;
 
   const runningIds = new Set(windows.map((item) => item.appId));
   useEffect(() => {
@@ -76,7 +77,7 @@ export function Taskbar() {
         </button>
         <button aria-label="Notifications" className="taskbar-button" onClick={() => toggleNotifications()} type="button">
           <Bell size={18} />
-          {notifications.length > 0 ? <span className="taskbar-badge">{notifications.length}</span> : null}
+          {unreadCount > 0 ? <span className="taskbar-badge">{unreadCount}</span> : null}
         </button>
         <div className="taskbar-clock">{time}</div>
       </div>

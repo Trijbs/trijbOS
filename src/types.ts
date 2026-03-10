@@ -31,6 +31,7 @@ export type NotificationItem = {
   title: string;
   body: string;
   createdAt: string;
+  readAt?: string | null;
   tone: "info" | "success" | "warning";
 };
 

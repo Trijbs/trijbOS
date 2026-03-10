@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const storageMocks = vi.hoisted(() => ({
   clearNotificationHistory: vi.fn(async () => undefined),
+  deleteNotification: vi.fn(async () => undefined),
   deleteFile: vi.fn(async () => undefined),
   ensureStorageReady: vi.fn(async () => undefined),
   loadFiles: vi.fn(async () => []),
@@ -280,5 +281,52 @@ describe("system store", () => {
     expect(useSystemStore.getState().files).toHaveLength(1);
     expect(useSystemStore.getState().files[0].id).toBe("desktop-note");
     expect(storageMocks.deleteFile).toHaveBeenCalledWith("trash-note");
+  });
+
+  it("marks notifications read when the center opens", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      notificationsOpen: false,
+      notifications: [
+        {
+          id: "notification-1",
+          title: "Saved",
+          body: "Your note was saved.",
+          createdAt: "2026-03-10T00:00:00.000Z",
+          readAt: null,
+          tone: "success",
+        },
+      ],
+    });
+
+    useSystemStore.getState().toggleNotifications(true);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(useSystemStore.getState().notificationsOpen).toBe(true);
+    expect(useSystemStore.getState().notifications[0].readAt).toBeTruthy();
+    expect(storageMocks.saveNotification).toHaveBeenCalled();
+  });
+
+  it("dismisses individual notifications", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      notifications: [
+        {
+          id: "notification-1",
+          title: "Saved",
+          body: "Your note was saved.",
+          createdAt: "2026-03-10T00:00:00.000Z",
+          readAt: null,
+          tone: "success",
+        },
+      ],
+    });
+
+    await useSystemStore.getState().dismissNotification("notification-1");
+
+    expect(useSystemStore.getState().notifications).toHaveLength(0);
   });
 });

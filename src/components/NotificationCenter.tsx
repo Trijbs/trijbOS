@@ -1,8 +1,10 @@
+import { X } from "lucide-react";
 import { useSystemStore } from "../system-store";
 
 export function NotificationCenter() {
   const notifications = useSystemStore((state) => state.notifications);
   const clearNotifications = useSystemStore((state) => state.clearNotifications);
+  const dismissNotification = useSystemStore((state) => state.dismissNotification);
 
   return (
     <aside aria-label="Notification center" className="notification-center">
@@ -20,7 +22,12 @@ export function NotificationCenter() {
           <article className={`notification-card tone-${item.tone}`} key={item.id}>
             <header>
               <strong>{item.title}</strong>
-              <span>{new Date(item.createdAt).toLocaleTimeString()}</span>
+              <div className="notification-meta">
+                <span>{new Date(item.createdAt).toLocaleTimeString()}</span>
+                <button aria-label={`Dismiss ${item.title}`} onClick={() => void dismissNotification(item.id)} type="button">
+                  <X size={14} />
+                </button>
+              </div>
             </header>
             <p>{item.body}</p>
           </article>

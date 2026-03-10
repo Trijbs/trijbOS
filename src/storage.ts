@@ -191,6 +191,10 @@ export async function saveNotification(item: NotificationItem) {
   await db.notifications.put(item);
 }
 
+export async function deleteNotification(id: string) {
+  await db.notifications.delete(id);
+}
+
 export async function clearNotificationHistory() {
   await db.notifications.clear();
 }
