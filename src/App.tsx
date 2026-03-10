@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { getKeyboardShortcutCommand } from "./keyboard-shortcuts";
 import { DesktopShortcuts } from "./components/DesktopShortcuts";
 import { Launcher } from "./components/Launcher";
 import { NotificationCenter } from "./components/NotificationCenter";
 import { Taskbar } from "./components/Taskbar";
 import { WindowLayer } from "./components/WindowLayer";
 import { useSystemStore } from "./system-store";
+import { useShellShortcuts } from "./use-shell-shortcuts";
 import { useThemeEffect } from "./use-theme-effect";
 
 export function App() {
@@ -26,41 +26,11 @@ export function App() {
   }, [hydrate]);
 
   useThemeEffect(theme);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const command = getKeyboardShortcutCommand(event);
-      if (!command) {
-        return;
-      }
-
-      event.preventDefault();
-      switch (command) {
-        case "open-launcher":
-          useSystemStore.getState().toggleLauncher(true);
-          break;
-        case "open-settings":
-          useSystemStore.getState().launchApp("settings");
-          break;
-        case "close-top-window":
-          closeTopWindow();
-          break;
-        case "maximize-top-window":
-          toggleTopWindowMaximize();
-          break;
-        case "minimize-top-window":
-          minimizeTopWindow();
-          break;
-        case "dismiss-overlays":
-          useSystemStore.getState().toggleLauncher(false);
-          useSystemStore.getState().toggleNotifications(false);
-          break;
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeTopWindow, minimizeTopWindow, toggleTopWindowMaximize]);
+  useShellShortcuts({
+    closeTopWindow,
+    minimizeTopWindow,
+    toggleTopWindowMaximize,
+  });
 
   if (!hydrated) {
     return <div className="boot-screen">Booting trijbOS...</div>;
