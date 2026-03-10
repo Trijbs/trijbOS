@@ -6,6 +6,7 @@ import { NotificationCenter } from "./components/NotificationCenter";
 import { Taskbar } from "./components/Taskbar";
 import { WindowLayer } from "./components/WindowLayer";
 import { useSystemStore } from "./system-store";
+import { useThemeEffect } from "./use-theme-effect";
 
 export function App() {
   const hydrate = useSystemStore((state) => state.hydrate);
@@ -24,18 +25,7 @@ export function App() {
     void hydrate();
   }, [hydrate]);
 
-  useEffect(() => {
-    const mode =
-      theme.mode === "system"
-        ? window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light"
-        : theme.mode;
-
-    document.documentElement.dataset.theme = mode;
-    document.documentElement.style.setProperty("--accent", theme.accent);
-    document.documentElement.style.setProperty("--wallpaper", theme.wallpaper);
-  }, [theme]);
+  useThemeEffect(theme);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
