@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { DesktopCanvas } from "./components/DesktopCanvas";
 import { DesktopShortcuts } from "./components/DesktopShortcuts";
 import { Launcher } from "./components/Launcher";
 import { NotificationCenter } from "./components/NotificationCenter";
@@ -39,13 +40,10 @@ export function App() {
   return (
     <div className="desktop-shell">
       <div className="wallpaper-layer" />
-      <main
-        className="desktop-canvas"
-        onDoubleClick={() => launchApp("file-explorer")}
-      >
+      <DesktopCanvas onOpenFileExplorer={() => launchApp("file-explorer")}>
         <DesktopShortcuts files={files} launchApp={launchApp} openFile={openFile} />
         <WindowLayer />
-      </main>
+      </DesktopCanvas>
       <Taskbar />
       {launcherOpen ? <Launcher /> : null}
       {notificationsOpen ? <NotificationCenter /> : null}
