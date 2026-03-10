@@ -1,5 +1,6 @@
 import { CheckSquare, FileText, Folder, Image, MoveRight, PencilLine, Square, Trash2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
+import { isProtectedFileNode } from "../../filesystem-roots";
 import { buildBreadcrumbs, sortDirectoryEntries, toggleFileSelection } from "../../file-utils";
 import { useSystemStore } from "../../system-store";
 
@@ -125,6 +126,7 @@ export function FileExplorerApp() {
         <div className="explorer-list">
           {directoryEntries.map((entry) => {
             const isSelected = selectedFileIds.includes(entry.id);
+            const isProtected = isProtectedFileNode(entry.id);
             return (
               <article
                 className={`explorer-row ${isSelected ? "is-selected" : ""}`}
@@ -179,10 +181,20 @@ export function FileExplorerApp() {
                       Open
                     </button>
                   )}
-                  <button onClick={() => setRenameId(entry.id)} type="button">
+                  <button
+                    aria-label={isProtected ? `${entry.name} cannot be renamed` : `Rename ${entry.name}`}
+                    disabled={isProtected}
+                    onClick={() => setRenameId(entry.id)}
+                    type="button"
+                  >
                     <PencilLine size={14} />
                   </button>
-                  <button onClick={() => void removeFile(entry.id)} type="button">
+                  <button
+                    aria-label={isProtected ? `${entry.name} cannot be deleted` : `Delete ${entry.name}`}
+                    disabled={isProtected}
+                    onClick={() => void removeFile(entry.id)}
+                    type="button"
+                  >
                     <Trash2 size={14} />
                   </button>
                 </div>

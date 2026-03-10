@@ -444,7 +444,22 @@ button {
 .accent-swatch {
   border: 1px solid var(--border);
   border-radius: 14px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
   min-height: 56px;
+  overflow: hidden;
+  padding: 10px;
+  position: relative;
+}
+
+.swatch-caption {
+  background: rgba(8, 12, 18, 0.68);
+  border-radius: 999px;
+  color: #f5f8ff;
+  font-size: 0.72rem;
+  line-height: 1;
+  padding: 6px 9px;
 }
 
 .settings-app {

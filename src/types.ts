@@ -71,6 +71,7 @@ export type AppDefinition = {
   minWidth?: number;
   minHeight?: number;
   resizable?: boolean;
+  singleInstance?: boolean;
   keywords: string[];
   component: React.ComponentType<AppProps>;
 };

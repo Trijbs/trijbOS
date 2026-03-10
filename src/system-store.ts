@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { appDefinitions } from "./apps";
+import { isProtectedFileNode } from "./filesystem-roots";
 import { isDesktopSnapshot, readBrowserFile } from "./import-utils";
 import { getFileTargetApp } from "./file-utils";
 import { toggleLauncherState, toggleNotificationsState } from "./shell-state";
@@ -167,7 +169,11 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   },
   launchApp(appId, context) {
     set((state) => {
-      const windows = launchAppWindowState(state.windows, appId);
+      const windows = launchAppWindowState(
+        state.windows,
+        appId,
+        appDefinitions[appId].singleInstance,
+      );
       withPersistedWindows(windows);
       return {
         launcherOpen: false,
@@ -290,6 +296,9 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     }));
   },
   async removeFile(id) {
+    if (isProtectedFileNode(id)) {
+      return;
+    }
     await deleteFile(id);
     set((state) => ({
       files: state.files.filter((item) => item.id !== id),

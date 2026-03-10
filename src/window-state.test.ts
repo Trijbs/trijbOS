@@ -105,4 +105,18 @@ describe("window state helpers", () => {
     expect(randomUuid).not.toHaveBeenCalled();
     randomUuid.mockRestore();
   });
+
+  it("focuses an existing single-instance window instead of spawning another one", () => {
+    const randomUuid = vi.spyOn(crypto, "randomUUID");
+
+    const next = launchAppWindowState(baseWindows, "settings", true);
+
+    expect(next).toHaveLength(2);
+    expect(next.find((item) => item.id === "settings-1")).toMatchObject({
+      minimized: false,
+      zIndex: 3,
+    });
+    expect(randomUuid).not.toHaveBeenCalled();
+    randomUuid.mockRestore();
+  });
 });

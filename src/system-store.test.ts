@@ -161,4 +161,28 @@ describe("system store", () => {
       notificationsOpen: true,
     });
   });
+
+  it("does not delete protected root directories", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      files: [
+        {
+          id: "desktop",
+          name: "Desktop",
+          parentId: null,
+          type: "folder",
+          createdAt: "2026-03-10T00:00:00.000Z",
+          updatedAt: "2026-03-10T00:00:00.000Z",
+        },
+      ],
+      selectedFileId: "desktop",
+      selectedFileIds: ["desktop"],
+    });
+
+    await useSystemStore.getState().removeFile("desktop");
+
+    expect(useSystemStore.getState().files).toHaveLength(1);
+    expect(storageMocks.deleteFile).not.toHaveBeenCalled();
+  });
 });

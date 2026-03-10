@@ -1,4 +1,5 @@
 import Dexie, { type Table } from "dexie";
+import { filesystemRoots } from "./filesystem-roots";
 import type { DesktopSnapshot, FileNode, NotificationItem, ThemePreference, WindowState } from "./types";
 import { getStorageBootstrapAction, STORAGE_SCHEMA_VERSION } from "./storage-version";
 
@@ -33,19 +34,11 @@ const defaultTheme: ThemePreference = {
     "radial-gradient(circle at 20% 20%, rgba(123, 247, 191, 0.35), transparent 28%), radial-gradient(circle at 80% 10%, rgba(90, 140, 255, 0.28), transparent 30%), linear-gradient(135deg, #0f1720 0%, #1d2834 52%, #28364d 100%)",
 };
 
-const rootDirectories = [
-  { id: "desktop", name: "Desktop" },
-  { id: "documents", name: "Documents" },
-  { id: "downloads", name: "Downloads" },
-  { id: "pictures", name: "Pictures" },
-  { id: "trash", name: "Trash" },
-];
-
 const nowIso = () => new Date().toISOString();
 
 export async function seedDatabase() {
   const now = nowIso();
-  const folders: FileNode[] = rootDirectories.map((folder) => ({
+  const folders: FileNode[] = filesystemRoots.map((folder) => ({
     id: folder.id,
     name: folder.name,
     parentId: null,

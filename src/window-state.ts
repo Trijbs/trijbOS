@@ -61,9 +61,15 @@ export function updateWindowBoundsState(windows: WindowState[], id: string, boun
   );
 }
 
-export function launchAppWindowState(windows: WindowState[], appId: AppId) {
+export function launchAppWindowState(
+  windows: WindowState[],
+  appId: AppId,
+  singleInstance = false,
+) {
   const highest = getHighestZIndex(windows);
-  const existing = windows.find((item) => item.appId === appId && item.minimized);
+  const existing = windows.find((item) =>
+    item.appId === appId && (singleInstance || item.minimized),
+  );
 
   if (existing) {
     return focusWindowState(windows, existing.id);

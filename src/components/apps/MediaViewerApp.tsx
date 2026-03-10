@@ -1,10 +1,5 @@
 import { useSystemStore } from "../../system-store";
-
-const wallpapers = [
-  "radial-gradient(circle at 20% 20%, rgba(123, 247, 191, 0.35), transparent 28%), radial-gradient(circle at 80% 10%, rgba(90, 140, 255, 0.28), transparent 30%), linear-gradient(135deg, #0f1720 0%, #1d2834 52%, #28364d 100%)",
-  "radial-gradient(circle at 15% 15%, rgba(255, 196, 125, 0.35), transparent 20%), radial-gradient(circle at 80% 25%, rgba(255, 110, 110, 0.2), transparent 25%), linear-gradient(145deg, #241820 0%, #42293f 55%, #8a5b54 100%)",
-  "radial-gradient(circle at 30% 30%, rgba(116, 215, 255, 0.26), transparent 24%), radial-gradient(circle at 70% 20%, rgba(144, 255, 208, 0.2), transparent 24%), linear-gradient(135deg, #08141c 0%, #163040 50%, #284a56 100%)",
-];
+import { wallpaperOptions } from "../../theme-options";
 
 export function MediaViewerApp() {
   const updateTheme = useSystemStore((state) => state.updateTheme);
@@ -32,12 +27,13 @@ export function MediaViewerApp() {
         </small>
       </div>
       <div className="wallpaper-grid">
-        {wallpapers.map((wallpaper) => (
+        {wallpaperOptions.map((wallpaper) => (
           <button
-            className={`wallpaper-tile ${theme.wallpaper === wallpaper ? "is-active" : ""}`}
-            key={wallpaper}
-            onClick={() => void updateTheme({ wallpaper })}
-            style={{ background: wallpaper }}
+            aria-label={`Use ${wallpaper.label} wallpaper`}
+            className={`wallpaper-tile ${theme.wallpaper === wallpaper.value ? "is-active" : ""}`}
+            key={wallpaper.id}
+            onClick={() => void updateTheme({ wallpaper: wallpaper.value })}
+            style={{ background: wallpaper.value }}
             type="button"
           />
         ))}

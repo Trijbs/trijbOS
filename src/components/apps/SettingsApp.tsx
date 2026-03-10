@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { useSystemStore } from "../../system-store";
-
-const accents = ["#7bf7bf", "#ffb86c", "#9b8cff", "#ff7a9f", "#6fd3ff"];
+import { accentOptions, wallpaperOptions } from "../../theme-options";
 
 export function SettingsApp() {
   const importRef = useRef<HTMLInputElement | null>(null);
@@ -31,14 +30,31 @@ export function SettingsApp() {
           </select>
         </div>
         <div className="accent-grid">
-          {accents.map((accent) => (
+          {accentOptions.map((accent) => (
             <button
-              className={`accent-swatch ${theme.accent === accent ? "is-active" : ""}`}
-              key={accent}
-              onClick={() => void updateTheme({ accent })}
-              style={{ background: accent }}
+              aria-label={`Use ${accent.label} accent`}
+              className={`accent-swatch ${theme.accent === accent.value ? "is-active" : ""}`}
+              key={accent.id}
+              onClick={() => void updateTheme({ accent: accent.value })}
+              style={{ background: accent.value }}
               type="button"
-            />
+            >
+              <span className="swatch-caption">{accent.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="wallpaper-grid">
+          {wallpaperOptions.map((wallpaper) => (
+            <button
+              aria-label={`Use ${wallpaper.label} wallpaper`}
+              className={`wallpaper-tile ${theme.wallpaper === wallpaper.value ? "is-active" : ""}`}
+              key={wallpaper.id}
+              onClick={() => void updateTheme({ wallpaper: wallpaper.value })}
+              style={{ background: wallpaper.value }}
+              type="button"
+            >
+              <span className="swatch-caption">{wallpaper.label}</span>
+            </button>
           ))}
         </div>
       </section>
