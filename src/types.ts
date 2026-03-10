@@ -34,11 +34,17 @@ export type NotificationItem = {
   tone: "info" | "success" | "warning";
 };
 
+export type WorkspaceState = {
+  activeDirectoryId: string | null;
+  selectedFileIds: string[];
+};
+
 export type DesktopSnapshot = {
   exportedAt: string;
   files: FileNode[];
   notifications: NotificationItem[];
   theme: ThemePreference;
+  workspace?: WorkspaceState;
   windows: WindowState[];
 };
 

@@ -14,6 +14,7 @@ describe("import utils", () => {
         files: [],
         notifications: [],
         theme: { accent: "#7bf7bf", mode: "dark", wallpaper: "gradient" },
+        workspace: { activeDirectoryId: "documents", selectedFileIds: ["note-1"] },
         windows: [],
       }),
     ).toBe(true);

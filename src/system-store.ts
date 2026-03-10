@@ -12,12 +12,14 @@ import {
   loadNotifications,
   loadSession,
   loadThemePreference,
+  loadWorkspaceState,
   resetStorage,
   restoreSnapshot,
   saveFile,
   saveNotification,
   saveSession,
   saveThemePreference,
+  saveWorkspaceState,
 } from "./storage";
 import {
   focusWindowState,
@@ -36,12 +38,14 @@ import type {
   ThemePreference,
   WindowBounds,
   WindowState,
+  WorkspaceState,
 } from "./types";
 
 type HydratedPayload = {
   files: FileNode[];
   notifications: NotificationItem[];
   theme: ThemePreference;
+  workspace: WorkspaceState;
   windows: WindowState[];
 };
 
@@ -118,17 +122,26 @@ function enqueuePersistence<T>(task: () => Promise<T>) {
 
 function normalizeHydratedState(payload: HydratedPayload) {
   return {
-    activeDirectoryId: "desktop",
+    activeDirectoryId: payload.workspace.activeDirectoryId ?? "desktop",
     files: payload.files,
     hydrated: true,
     launcherOpen: false,
     notifications: payload.notifications,
     notificationsOpen: false,
-    selectedFileId: null,
-    selectedFileIds: [],
+    selectedFileId: payload.workspace.selectedFileIds[0] ?? null,
+    selectedFileIds: payload.workspace.selectedFileIds,
     theme: payload.theme,
     windows: payload.windows,
   };
+}
+
+function persistWorkspaceState(activeDirectoryId: string | null, selectedFileIds: string[]) {
+  void enqueuePersistence(() =>
+    saveWorkspaceState({
+      activeDirectoryId,
+      selectedFileIds,
+    }),
+  );
 }
 
 export const useSystemStore = create<SystemState>((set, get) => ({
@@ -144,13 +157,20 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   notifications: [],
   async hydrate() {
     await ensureStorageReady();
-    const [files, notifications, theme, windows] = await Promise.all([
+    const [workspace, files, notifications, theme, windows] = await Promise.all([
+      loadWorkspaceState(),
       loadFiles(),
       loadNotifications(),
       loadThemePreference(),
       loadSession(),
     ]);
-    set(normalizeHydratedState({ files, notifications, theme, windows }));
+    set(normalizeHydratedState({
+      files,
+      notifications,
+      theme,
+      windows,
+      workspace,
+    }));
   },
   toggleLauncher(forced) {
     set((state) => toggleLauncherState(state, forced));
@@ -159,10 +179,16 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     set((state) => toggleNotificationsState(state, forced));
   },
   setActiveDirectory(directoryId) {
-    set({ activeDirectoryId: directoryId });
+    set((state) => {
+      persistWorkspaceState(directoryId, state.selectedFileIds);
+      return { activeDirectoryId: directoryId };
+    });
   },
   setSelectedFiles(fileIds) {
-    set({ selectedFileIds: fileIds, selectedFileId: fileIds[0] ?? null });
+    set((state) => {
+      persistWorkspaceState(state.activeDirectoryId, fileIds);
+      return { selectedFileIds: fileIds, selectedFileId: fileIds[0] ?? null };
+    });
   },
   async updateTheme(patch) {
     const theme = { ...get().theme, ...patch };
@@ -196,6 +222,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       selectedFileId: fileId,
       selectedFileIds: [fileId],
     });
+    persistWorkspaceState(nextDirectoryId, [fileId]);
 
     get().launchApp(getFileTargetApp(file), { fileId });
   },
@@ -286,6 +313,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       selectedFileId: node.id,
       selectedFileIds: [node.id],
     }));
+    persistWorkspaceState(get().activeDirectoryId, [node.id]);
   },
   async updateFile(id, patch) {
     const target = get().files.find((item) => item.id === id);
@@ -308,12 +336,14 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     }
 
     if (target.parentId === "trash") {
+      const nextSelectedFileIds = get().selectedFileIds.filter((fileId) => fileId !== id);
       await deleteFile(id);
       set((state) => ({
         files: state.files.filter((item) => item.id !== id),
         selectedFileId: state.selectedFileId === id ? null : state.selectedFileId,
         selectedFileIds: state.selectedFileIds.filter((fileId) => fileId !== id),
       }));
+      persistWorkspaceState(get().activeDirectoryId, nextSelectedFileIds);
       return;
     }
 
@@ -324,11 +354,13 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       updatedAt: new Date().toISOString(),
     };
     await saveFile(node);
+    const nextSelectedFileIds = get().selectedFileIds.filter((fileId) => fileId !== id);
     set((state) => ({
       files: state.files.map((item) => (item.id === id ? node : item)),
       selectedFileId: state.selectedFileId === id ? null : state.selectedFileId,
       selectedFileIds: state.selectedFileIds.filter((fileId) => fileId !== id),
     }));
+    persistWorkspaceState(get().activeDirectoryId, nextSelectedFileIds);
   },
   async moveFiles(fileIds, parentId) {
     const timestamp = new Date().toISOString();
@@ -353,6 +385,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       selectedFileId: fileIds[0] ?? null,
       selectedFileIds: fileIds,
     });
+    persistWorkspaceState(get().activeDirectoryId, fileIds);
   },
   async restoreFiles(fileIds) {
     const timestamp = new Date().toISOString();
@@ -377,11 +410,13 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       selectedFileId: null,
       selectedFileIds: [],
     });
+    persistWorkspaceState(get().activeDirectoryId, []);
   },
   async emptyTrash() {
     const trashFileIds = get().files
       .filter((item) => item.parentId === "trash" && !isProtectedFileNode(item.id))
       .map((item) => item.id);
+    const nextSelectedFileIds = get().selectedFileIds.filter((fileId) => !trashFileIds.includes(fileId));
 
     await Promise.all(trashFileIds.map(async (id) => deleteFile(id)));
     set((state) => ({
@@ -389,6 +424,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       selectedFileId: trashFileIds.includes(state.selectedFileId ?? "") ? null : state.selectedFileId,
       selectedFileIds: state.selectedFileIds.filter((fileId) => !trashFileIds.includes(fileId)),
     }));
+    persistWorkspaceState(get().activeDirectoryId, nextSelectedFileIds);
   },
   async importBrowserFiles(fileList, parentId) {
     const targetParentId = parentId ?? get().activeDirectoryId ?? "downloads";
@@ -415,6 +451,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       selectedFileId: importedNodes.at(-1)?.id ?? state.selectedFileId,
       selectedFileIds: importedNodes.map((node) => node.id),
     }));
+    persistWorkspaceState(get().activeDirectoryId, importedNodes.map((node) => node.id));
   },
   async importSnapshot(file) {
     let parsed: unknown;
@@ -433,19 +470,21 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       files: parsed.files,
       notifications: parsed.notifications,
       theme: parsed.theme,
+      workspace: parsed.workspace ?? { activeDirectoryId: "desktop", selectedFileIds: [] },
       windows: parsed.windows,
     }));
     return true;
   },
   async resetWorkspace() {
     await enqueuePersistence(() => resetStorage());
-    const [files, notifications, theme, windows] = await Promise.all([
+    const [workspace, files, notifications, theme, windows] = await Promise.all([
+      loadWorkspaceState(),
       loadFiles(),
       loadNotifications(),
       loadThemePreference(),
       loadSession(),
     ]);
-    set(normalizeHydratedState({ files, notifications, theme, windows }));
+    set(normalizeHydratedState({ files, notifications, theme, windows, workspace }));
   },
   async pushNotification(item) {
     const next: NotificationItem = {

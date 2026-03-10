@@ -1,6 +1,13 @@
 import Dexie, { type Table } from "dexie";
 import { filesystemRoots } from "./filesystem-roots";
-import type { DesktopSnapshot, FileNode, NotificationItem, ThemePreference, WindowState } from "./types";
+import type {
+  DesktopSnapshot,
+  FileNode,
+  NotificationItem,
+  ThemePreference,
+  WindowState,
+  WorkspaceState,
+} from "./types";
 import { getStorageBootstrapAction, STORAGE_SCHEMA_VERSION } from "./storage-version";
 
 type PreferenceRecord = {
@@ -32,6 +39,11 @@ const defaultTheme: ThemePreference = {
   accent: "#7bf7bf",
   wallpaper:
     "radial-gradient(circle at 20% 20%, rgba(123, 247, 191, 0.35), transparent 28%), radial-gradient(circle at 80% 10%, rgba(90, 140, 255, 0.28), transparent 30%), linear-gradient(135deg, #0f1720 0%, #1d2834 52%, #28364d 100%)",
+};
+
+const defaultWorkspaceState: WorkspaceState = {
+  activeDirectoryId: "desktop",
+  selectedFileIds: [],
 };
 
 const nowIso = () => new Date().toISOString();
@@ -127,6 +139,27 @@ export async function saveThemePreference(theme: ThemePreference) {
   await db.preferences.put({ key: "theme", value: JSON.stringify(theme) });
 }
 
+export async function loadWorkspaceState(): Promise<WorkspaceState> {
+  const record = await db.preferences.get("workspace");
+  if (!record) {
+    return defaultWorkspaceState;
+  }
+
+  try {
+    const parsed = JSON.parse(record.value) as WorkspaceState;
+    return {
+      activeDirectoryId: parsed.activeDirectoryId ?? "desktop",
+      selectedFileIds: Array.isArray(parsed.selectedFileIds) ? parsed.selectedFileIds : [],
+    };
+  } catch {
+    return defaultWorkspaceState;
+  }
+}
+
+export async function saveWorkspaceState(workspace: WorkspaceState) {
+  await db.preferences.put({ key: "workspace", value: JSON.stringify(workspace) });
+}
+
 export async function loadFiles() {
   return db.files.toArray();
 }
@@ -179,6 +212,7 @@ export async function replaceNotifications(notifications: NotificationItem[]) {
 export async function restoreSnapshot(snapshot: DesktopSnapshot) {
   await replaceFiles(snapshot.files);
   await saveThemePreference(snapshot.theme);
+  await saveWorkspaceState(snapshot.workspace ?? defaultWorkspaceState);
   await replaceNotifications(snapshot.notifications);
   await saveSession(snapshot.windows);
 }

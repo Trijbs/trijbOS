@@ -8,6 +8,8 @@ export function SettingsApp() {
   const files = useSystemStore((state) => state.files);
   const windows = useSystemStore((state) => state.windows);
   const notifications = useSystemStore((state) => state.notifications);
+  const activeDirectoryId = useSystemStore((state) => state.activeDirectoryId);
+  const selectedFileIds = useSystemStore((state) => state.selectedFileIds);
   const importSnapshot = useSystemStore((state) => state.importSnapshot);
   const resetWorkspace = useSystemStore((state) => state.resetWorkspace);
   const updateTheme = useSystemStore((state) => state.updateTheme);
@@ -71,6 +73,10 @@ export function SettingsApp() {
                 files,
                 notifications,
                 theme,
+                workspace: {
+                  activeDirectoryId,
+                  selectedFileIds,
+                },
                 windows,
               },
               null,

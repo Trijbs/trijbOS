@@ -43,6 +43,11 @@ export function isDesktopSnapshot(input: unknown): input is DesktopSnapshot {
     Array.isArray(candidate.files) &&
     Array.isArray(candidate.notifications) &&
     Array.isArray(candidate.windows) &&
+    (candidate.workspace === undefined ||
+      (typeof candidate.workspace === "object" &&
+        candidate.workspace !== null &&
+        ("activeDirectoryId" in candidate.workspace) &&
+        Array.isArray((candidate.workspace as Record<string, unknown>).selectedFileIds))) &&
     typeof candidate.theme === "object" &&
     candidate.theme !== null
   );
