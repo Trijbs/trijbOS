@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { FileText, FolderOpen, ImageIcon } from "lucide-react";
 import { appDefinitions } from "./apps";
+import { getKeyboardShortcutCommand } from "./keyboard-shortcuts";
 import { Launcher } from "./components/Launcher";
 import { NotificationCenter } from "./components/NotificationCenter";
 import { Taskbar } from "./components/Taskbar";
@@ -52,35 +53,32 @@ export function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const hasCommandModifier = event.metaKey || event.ctrlKey;
-      const normalizedKey = event.key.toLowerCase();
-      const isLauncher = hasCommandModifier && normalizedKey === "k";
-      const isSettingsShortcut = hasCommandModifier && event.key === ",";
-      const isCloseWindowShortcut = hasCommandModifier && normalizedKey === "w";
-      const isMinimizeWindowShortcut = hasCommandModifier && normalizedKey === "m";
-      const isMaximizeWindowShortcut = hasCommandModifier && event.shiftKey && normalizedKey === "m";
-      if (isLauncher) {
-        event.preventDefault();
-        useSystemStore.getState().toggleLauncher(true);
+      const command = getKeyboardShortcutCommand(event);
+      if (!command) {
+        return;
       }
-      if (isSettingsShortcut) {
-        event.preventDefault();
-        useSystemStore.getState().launchApp("settings");
-      }
-      if (isCloseWindowShortcut) {
-        event.preventDefault();
-        closeTopWindow();
-      }
-      if (isMaximizeWindowShortcut) {
-        event.preventDefault();
-        toggleTopWindowMaximize();
-      } else if (isMinimizeWindowShortcut) {
-        event.preventDefault();
-        minimizeTopWindow();
-      }
-      if (event.key === "Escape") {
-        useSystemStore.getState().toggleLauncher(false);
-        useSystemStore.getState().toggleNotifications(false);
+
+      event.preventDefault();
+      switch (command) {
+        case "open-launcher":
+          useSystemStore.getState().toggleLauncher(true);
+          break;
+        case "open-settings":
+          useSystemStore.getState().launchApp("settings");
+          break;
+        case "close-top-window":
+          closeTopWindow();
+          break;
+        case "maximize-top-window":
+          toggleTopWindowMaximize();
+          break;
+        case "minimize-top-window":
+          minimizeTopWindow();
+          break;
+        case "dismiss-overlays":
+          useSystemStore.getState().toggleLauncher(false);
+          useSystemStore.getState().toggleNotifications(false);
+          break;
       }
     };
 
