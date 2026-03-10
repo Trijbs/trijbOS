@@ -129,4 +129,36 @@ describe("system store", () => {
       ]),
     );
   });
+
+  it("opens the launcher as an exclusive overlay", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      launcherOpen: false,
+      notificationsOpen: true,
+    });
+
+    useSystemStore.getState().toggleLauncher();
+
+    expect(useSystemStore.getState()).toMatchObject({
+      launcherOpen: true,
+      notificationsOpen: false,
+    });
+  });
+
+  it("opens notifications as an exclusive overlay", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      launcherOpen: true,
+      notificationsOpen: false,
+    });
+
+    useSystemStore.getState().toggleNotifications();
+
+    expect(useSystemStore.getState()).toMatchObject({
+      launcherOpen: false,
+      notificationsOpen: true,
+    });
+  });
 });

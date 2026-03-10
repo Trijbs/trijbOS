@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { isDesktopSnapshot, readBrowserFile } from "./import-utils";
 import { getFileTargetApp } from "./file-utils";
+import { toggleLauncherState, toggleNotificationsState } from "./shell-state";
 import {
   clearNotificationHistory,
   deleteFile,
@@ -148,16 +149,10 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     set(normalizeHydratedState({ files, notifications, theme, windows }));
   },
   toggleLauncher(forced) {
-    set((state) => ({
-      launcherOpen: forced ?? !state.launcherOpen,
-      notificationsOpen: forced === true ? false : state.notificationsOpen,
-    }));
+    set((state) => toggleLauncherState(state, forced));
   },
   toggleNotifications(forced) {
-    set((state) => ({
-      launcherOpen: false,
-      notificationsOpen: forced ?? !state.notificationsOpen,
-    }));
+    set((state) => toggleNotificationsState(state, forced));
   },
   setActiveDirectory(directoryId) {
     set({ activeDirectoryId: directoryId });
