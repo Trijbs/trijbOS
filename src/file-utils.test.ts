@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { buildBreadcrumbs, getFileTargetApp, sortDirectoryEntries, toggleFileSelection } from "./file-utils";
+import {
+  buildBreadcrumbs,
+  buildFilePath,
+  canMoveFileToParent,
+  getFileTargetApp,
+  getMoveTargets,
+  sortDirectoryEntries,
+  toggleFileSelection,
+} from "./file-utils";
 import type { FileNode } from "./types";
 
 const files: FileNode[] = [
@@ -62,5 +70,56 @@ describe("file utils", () => {
   it("toggles file selection membership", () => {
     expect(toggleFileSelection([], "note-1")).toEqual(["note-1"]);
     expect(toggleFileSelection(["note-1", "image-1"], "note-1")).toEqual(["image-1"]);
+  });
+
+  it("builds a readable file path from breadcrumbs", () => {
+    expect(buildFilePath(files, "note-1")).toBe("Desktop / Note.md");
+    expect(buildFilePath(files, "desktop")).toBe("Desktop");
+  });
+
+  it("prevents moving a folder into itself or a descendant", () => {
+    const nestedFolder: FileNode = {
+      id: "folder-1",
+      name: "Folder",
+      parentId: "desktop",
+      type: "folder",
+      createdAt: "",
+      updatedAt: "",
+    };
+    const nestedChild: FileNode = {
+      id: "folder-2",
+      name: "Child",
+      parentId: "folder-1",
+      type: "folder",
+      createdAt: "",
+      updatedAt: "",
+    };
+
+    const tree = [...files, nestedFolder, nestedChild];
+    expect(canMoveFileToParent(tree, "folder-1", "folder-1")).toBe(false);
+    expect(canMoveFileToParent(tree, "folder-1", "folder-2")).toBe(false);
+    expect(canMoveFileToParent(tree, "folder-1", "desktop")).toBe(true);
+  });
+
+  it("returns valid folder move targets for the current selection", () => {
+    const folderA: FileNode = {
+      id: "folder-a",
+      name: "Folder A",
+      parentId: "desktop",
+      type: "folder",
+      createdAt: "",
+      updatedAt: "",
+    };
+    const folderB: FileNode = {
+      id: "folder-b",
+      name: "Folder B",
+      parentId: "desktop",
+      type: "folder",
+      createdAt: "",
+      updatedAt: "",
+    };
+
+    const targets = getMoveTargets([...files, folderA, folderB], "desktop", ["note-1"]);
+    expect(targets.map((item) => item.id)).toEqual(["folder-a", "folder-b"]);
   });
 });

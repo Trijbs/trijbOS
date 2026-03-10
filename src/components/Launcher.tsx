@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { appDefinitions } from "../apps";
+import { buildLauncherResults, type LauncherResult } from "../launcher-utils";
 import { useSystemStore } from "../system-store";
-
-type LauncherResult =
-  | { id: string; kind: "app"; label: string; detail: string }
-  | { id: string; kind: "file"; label: string; detail: string };
 
 export function Launcher() {
   const [query, setQuery] = useState("");
@@ -14,28 +10,7 @@ export function Launcher() {
   const openFile = useSystemStore((state) => state.openFile);
 
   const results = useMemo<LauncherResult[]>(() => {
-    const normalized = query.trim().toLowerCase();
-    const appResults = Object.values(appDefinitions)
-      .filter((app) =>
-        normalized.length === 0
-          ? true
-          : `${app.title} ${app.description} ${app.keywords.join(" ")}`
-              .toLowerCase()
-              .includes(normalized),
-      )
-      .map((app) => ({ id: app.id, kind: "app" as const, label: app.title, detail: app.description }));
-
-    const fileResults = files
-      .filter((node) => (normalized.length === 0 ? false : node.name.toLowerCase().includes(normalized)))
-      .slice(0, 4)
-      .map((node) => ({
-        id: node.id,
-        kind: "file" as const,
-        label: node.name,
-        detail: node.parentId ?? "root",
-      }));
-
-    return [...appResults, ...fileResults].slice(0, 8);
+    return buildLauncherResults(files, query);
   }, [files, query]);
 
   useEffect(() => {

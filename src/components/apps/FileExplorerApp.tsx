@@ -1,7 +1,7 @@
 import { CheckSquare, FileText, Folder, Image, MoveRight, PencilLine, Square, Trash2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { isProtectedFileNode } from "../../filesystem-roots";
-import { buildBreadcrumbs, sortDirectoryEntries, toggleFileSelection } from "../../file-utils";
+import { buildBreadcrumbs, getMoveTargets, sortDirectoryEntries, toggleFileSelection } from "../../file-utils";
 import { useSystemStore } from "../../system-store";
 
 export function FileExplorerApp() {
@@ -25,7 +25,10 @@ export function FileExplorerApp() {
     [activeDirectoryId, files],
   );
   const rootDirectories = files.filter((item) => item.parentId === null);
-  const folderTargets = rootDirectories.filter((item) => item.id !== activeDirectoryId);
+  const moveTargets = useMemo(
+    () => getMoveTargets(files, activeDirectoryId, selectedFileIds),
+    [activeDirectoryId, files, selectedFileIds],
+  );
   const breadcrumbs = buildBreadcrumbs(files, activeDirectoryId);
   const selectedEntry = files.find((item) => item.id === selectedFileId) ?? null;
 
@@ -114,7 +117,7 @@ export function FileExplorerApp() {
           <div className="selection-bar">
             <span>{selectedFileIds.length} selected</span>
             <div className="selection-actions">
-              {folderTargets.map((folder) => (
+              {moveTargets.map((folder) => (
                 <button key={folder.id} onClick={() => void moveFiles(selectedFileIds, folder.id)} type="button">
                   <MoveRight size={14} />
                   <span>{folder.name}</span>
@@ -173,7 +176,16 @@ export function FileExplorerApp() {
                 </div>
                 <div className="explorer-row-actions">
                   {entry.type === "folder" ? (
-                    <button onClick={() => setActiveDirectory(entry.id)} type="button">
+                    <button
+                      onClick={() => setActiveDirectory(entry.id)}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={() => {
+                        if (selectedFileIds.length > 0) {
+                          void moveFiles(selectedFileIds, entry.id);
+                        }
+                      }}
+                      type="button"
+                    >
                       Open
                     </button>
                   ) : (
