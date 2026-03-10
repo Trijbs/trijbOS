@@ -1,23 +1,11 @@
 import { useEffect } from "react";
-import { FileText, FolderOpen, ImageIcon } from "lucide-react";
-import { appDefinitions } from "./apps";
 import { getKeyboardShortcutCommand } from "./keyboard-shortcuts";
+import { DesktopShortcuts } from "./components/DesktopShortcuts";
 import { Launcher } from "./components/Launcher";
 import { NotificationCenter } from "./components/NotificationCenter";
 import { Taskbar } from "./components/Taskbar";
 import { WindowLayer } from "./components/WindowLayer";
 import { useSystemStore } from "./system-store";
-import type { AppId, FileNode } from "./types";
-
-function getDesktopEntryIcon(entry: FileNode) {
-  if (entry.type === "folder") {
-    return FolderOpen;
-  }
-  if (entry.type === "image") {
-    return ImageIcon;
-  }
-  return FileText;
-}
 
 export function App() {
   const hydrate = useSystemStore((state) => state.hydrate);
@@ -31,8 +19,6 @@ export function App() {
   const toggleTopWindowMaximize = useSystemStore((state) => state.toggleTopWindowMaximize);
   const files = useSystemStore((state) => state.files);
   const openFile = useSystemStore((state) => state.openFile);
-
-  const desktopEntries = files.filter((item) => item.parentId === "desktop");
 
   useEffect(() => {
     void hydrate();
@@ -97,43 +83,7 @@ export function App() {
         className="desktop-canvas"
         onDoubleClick={() => launchApp("file-explorer")}
       >
-        <section className="desktop-shortcuts">
-          {(["file-explorer", "notes", "terminal", "settings"] as AppId[]).map((appId) => {
-            const app = appDefinitions[appId];
-            const Icon = app.icon;
-            return (
-              <button
-                className="desktop-shortcut"
-                key={app.id}
-                onDoubleClick={() => launchApp(app.id)}
-                onClick={(event) => event.stopPropagation()}
-                type="button"
-              >
-                <span className="desktop-shortcut-icon">
-                  <Icon size={20} />
-                </span>
-                <span>{app.title}</span>
-              </button>
-            );
-          })}
-          {desktopEntries.map((entry) => {
-            const Icon = getDesktopEntryIcon(entry);
-            return (
-              <button
-                className="desktop-shortcut"
-                key={entry.id}
-                onDoubleClick={() => openFile(entry.id)}
-                onClick={(event) => event.stopPropagation()}
-                type="button"
-              >
-                <span className="desktop-shortcut-icon">
-                  <Icon size={20} />
-                </span>
-                <span>{entry.name}</span>
-              </button>
-            );
-          })}
-        </section>
+        <DesktopShortcuts files={files} launchApp={launchApp} openFile={openFile} />
         <WindowLayer />
       </main>
       <Taskbar />
