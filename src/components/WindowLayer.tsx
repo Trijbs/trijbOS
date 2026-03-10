@@ -44,6 +44,7 @@ export function WindowLayer() {
         .sort((left, right) => left.zIndex - right.zIndex),
     [windowStateItems],
   );
+  const topWindowId = windows.at(-1)?.id ?? null;
   const focusWindow = useSystemStore((state) => state.focusWindow);
   const closeWindow = useSystemStore((state) => state.closeWindow);
   const minimizeWindow = useSystemStore((state) => state.minimizeWindow);
@@ -63,7 +64,7 @@ export function WindowLayer() {
         return (
           <Rnd
             bounds="parent"
-            className="window-frame"
+            className={`window-frame ${topWindowId === windowState.id ? "is-focused" : ""}`}
             disableDragging={windowState.maximized}
             enableResizing={windowState.maximized ? false : app.resizable ?? true}
             key={windowState.id}
@@ -95,9 +96,14 @@ export function WindowLayer() {
             aria-label={windowState.title}
             aria-labelledby={`window-title-${windowState.id}`}
             aria-modal={false}
+            data-maximized={windowState.maximized}
             tabIndex={0}
           >
-            <div className="window-titlebar" id={`window-title-${windowState.id}`}>
+            <div
+              className="window-titlebar"
+              id={`window-title-${windowState.id}`}
+              onDoubleClick={() => maximizeWindow(windowState.id)}
+            >
               <div className="window-title">
                 <span className="window-app-icon">
                   <Icon size={16} />
@@ -108,7 +114,12 @@ export function WindowLayer() {
                 <button aria-label={`Minimize ${windowState.title}`} onClick={() => minimizeWindow(windowState.id)} type="button">
                   <Minus size={14} />
                 </button>
-                <button aria-label={`Maximize ${windowState.title}`} onClick={() => maximizeWindow(windowState.id)} type="button">
+                <button
+                  aria-label={`Maximize ${windowState.title}`}
+                  aria-pressed={windowState.maximized}
+                  onClick={() => maximizeWindow(windowState.id)}
+                  type="button"
+                >
                   <Square size={14} />
                 </button>
                 <button aria-label={`Close ${windowState.title}`} onClick={() => closeWindow(windowState.id)} type="button">

@@ -179,3 +179,34 @@ test("notification center can clear notifications", async ({ page }) => {
   await page.getByRole("button", { name: "Clear all notifications" }).click();
   await expect(page.getByText("No recent notifications.")).toBeVisible();
 });
+
+test("notification badge clears after opening the notification center", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  await page.getByRole("button", { name: "Export desktop snapshot" }).click();
+  await expect(page.locator(".taskbar-badge")).toBeVisible();
+
+  await page.getByRole("button", { name: "Notifications" }).click();
+  await expect(page.getByLabel("Notification center")).toBeVisible();
+  await expect(page.locator(".taskbar-badge")).toHaveCount(0);
+});
+
+test("trash flow restores a deleted file", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "file explorer");
+
+  const welcomeRow = page.locator(".explorer-row").filter({ hasText: "Welcome Note.md" });
+  await expect(welcomeRow).toBeVisible();
+  await welcomeRow.getByRole("button", { name: "Move Welcome Note.md to trash" }).click();
+  await expect(welcomeRow).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Trash" }).click();
+  const trashRow = page.locator(".explorer-row").filter({ hasText: "Welcome Note.md" });
+  await expect(trashRow).toBeVisible();
+  await trashRow.getByRole("button", { name: /Restore/i }).click();
+  await expect(trashRow).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Desktop" }).click();
+  await expect(page.locator(".explorer-row").filter({ hasText: "Welcome Note.md" })).toBeVisible();
+});

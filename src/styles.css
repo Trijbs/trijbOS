@@ -152,19 +152,29 @@ button {
   border-radius: 20px;
   box-shadow: var(--shadow);
   overflow: hidden;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .window-frame:focus-visible {
   border-color: color-mix(in srgb, var(--accent) 55%, white 20%);
 }
 
+.window-frame.is-focused {
+  border-color: color-mix(in srgb, var(--accent) 40%, white 10%);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.34),
+    0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
 .window-titlebar {
   align-items: center;
   background: rgba(255, 255, 255, 0.04);
   border-bottom: 1px solid var(--border);
+  cursor: move;
   display: flex;
   justify-content: space-between;
   padding: 10px 14px;
+  user-select: none;
 }
 
 .window-title,
@@ -598,6 +608,23 @@ button {
   padding: 8px 10px;
 }
 
+.notification-meta {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.notification-meta button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
 .launcher-input {
   margin-bottom: 12px;
   width: 100%;
@@ -626,6 +653,15 @@ button {
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
+}
+
+.notification-card.is-unread {
+  border-color: color-mix(in srgb, var(--accent) 32%, white 12%);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.notification-card.is-read {
+  opacity: 0.86;
 }
 
 @media (max-width: 900px) {

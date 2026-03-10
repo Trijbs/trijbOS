@@ -19,7 +19,7 @@ export function NotificationCenter() {
       <div className="notification-list">
         {notifications.length === 0 ? <p>No recent notifications.</p> : null}
         {notifications.map((item) => (
-          <article className={`notification-card tone-${item.tone}`} key={item.id}>
+          <article className={`notification-card tone-${item.tone} ${item.readAt ? "is-read" : "is-unread"}`} key={item.id}>
             <header>
               <strong>{item.title}</strong>
               <div className="notification-meta">
