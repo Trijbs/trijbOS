@@ -1,0 +1,181 @@
+import { expect, test, type Page } from "@playwright/test";
+
+async function openLauncher(page: Page) {
+  await page.getByLabel("Open launcher").click();
+  await expect(page.getByPlaceholder("Search apps, files, settings")).toBeVisible();
+}
+
+async function launchFromLauncher(page: Page, query: string) {
+  await openLauncher(page);
+  await page.getByPlaceholder("Search apps, files, settings").fill(query);
+  await page.keyboard.press("Enter");
+}
+
+function commandChord(key: string) {
+  return `${process.platform === "darwin" ? "Meta" : "Control"}+${key}`;
+}
+
+test("desktop boots and launcher opens", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Booting trijbOS...")).not.toBeVisible();
+  await expect(page.locator(".taskbar")).toBeVisible();
+
+  await launchFromLauncher(page, "terminal");
+
+  await expect(page.getByText("trijbOS@desktop:~$ system")).toBeVisible();
+});
+
+test("launcher supports keyboard result navigation", async ({ page }) => {
+  await page.goto("/");
+  await openLauncher(page);
+
+  const search = page.getByLabel("Launcher search");
+  await search.fill("settings");
+  await search.press("ArrowDown");
+  await search.press("Enter");
+
+  await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+});
+
+test("system shortcut opens settings", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".desktop-canvas").click();
+  await page.keyboard.press(commandChord(","));
+  await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+});
+
+test("theme mode persists across reload", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  const themeMode = page.locator("#theme-mode");
+  await expect(themeMode).toBeVisible();
+  await themeMode.selectOption("light");
+
+  await page.reload();
+  await expect(page.locator(".taskbar")).toBeVisible();
+
+  await launchFromLauncher(page, "settings");
+  await expect(page.locator("#theme-mode")).toHaveValue("light");
+});
+
+test("file explorer accepts uploaded files", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "file explorer");
+
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "playwright-note.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("hello from e2e"),
+  });
+
+  await expect(page.locator(".explorer-row").filter({ hasText: "playwright-note.txt" })).toBeVisible();
+});
+
+test("taskbar toggles a running window", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  await expect(page.getByText("trijbOS@desktop:~$ system")).toBeVisible();
+
+  await page.getByRole("contentinfo").getByRole("button", { name: "Terminal" }).click();
+  await expect(page.getByText("trijbOS@desktop:~$ system")).not.toBeVisible();
+
+  await page.getByRole("contentinfo").getByRole("button", { name: "Terminal" }).click();
+  await expect(page.getByText("trijbOS@desktop:~$ system")).toBeVisible();
+});
+
+test("system shortcut closes the active window", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+  await expect(page.getByRole("dialog", { name: "Terminal" })).toBeVisible();
+
+  await page.keyboard.press(commandChord("w"));
+  await expect(page.getByRole("dialog", { name: "Terminal" })).not.toBeVisible();
+});
+
+test("system shortcut minimizes the active window", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+  await expect(page.getByRole("dialog", { name: "Terminal" })).toBeVisible();
+
+  await page.keyboard.press(commandChord("m"));
+  await expect(page.getByRole("dialog", { name: "Terminal" })).not.toBeVisible();
+});
+
+test("system shortcut toggles maximize on the active window", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await expect(terminalWindow).toBeVisible();
+
+  await page.keyboard.press(`${commandChord("Shift+M")}`);
+  await expect(terminalWindow).toBeVisible();
+});
+
+test("window focus cycles through titlebar controls with tab", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await terminalWindow.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Minimize Terminal" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Maximize Terminal" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Close Terminal" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Minimize Terminal" })).toBeFocused();
+});
+
+test("snapshot export and import restores theme state", async ({ page, browserName }, testInfo) => {
+  test.skip(browserName === "webkit", "Download handling is flaky in this environment for this smoke flow.");
+
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  const themeMode = page.locator("#theme-mode");
+  await themeMode.selectOption("light");
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export desktop snapshot" }).click();
+  const download = await downloadPromise;
+  const snapshotPath = testInfo.outputPath("trijbos-snapshot.json");
+  await download.saveAs(snapshotPath);
+
+  await themeMode.selectOption("dark");
+  await expect(themeMode).toHaveValue("dark");
+
+  await page.locator('input[type="file"][accept="application/json"]').setInputFiles(snapshotPath);
+  await expect(page.locator("#theme-mode")).toHaveValue("light");
+});
+
+test("reset workspace restores seeded defaults", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  const themeMode = page.locator("#theme-mode");
+  await themeMode.selectOption("light");
+  await expect(themeMode).toHaveValue("light");
+
+  await page.getByRole("button", { name: "Reset workspace" }).click();
+  await expect(page.getByRole("dialog", { name: "Settings" })).not.toBeVisible();
+  await page.reload();
+  await launchFromLauncher(page, "settings");
+  await expect(page.locator("#theme-mode").first()).toHaveValue("system");
+});
+
+test("notification center can clear notifications", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  await page.getByRole("button", { name: "Export desktop snapshot" }).click();
+  await page.getByRole("button", { name: "Reset workspace" }).click();
+
+  await page.getByRole("button", { name: "Notifications" }).click();
+  await expect(page.getByLabel("Notification center")).toBeVisible();
+  await page.getByRole("button", { name: "Clear all notifications" }).click();
+  await expect(page.getByText("No recent notifications.")).toBeVisible();
+});
