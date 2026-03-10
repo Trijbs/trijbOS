@@ -299,9 +299,29 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     if (isProtectedFileNode(id)) {
       return;
     }
-    await deleteFile(id);
+    const target = get().files.find((item) => item.id === id);
+    if (!target) {
+      return;
+    }
+
+    if (target.parentId === "trash") {
+      await deleteFile(id);
+      set((state) => ({
+        files: state.files.filter((item) => item.id !== id),
+        selectedFileId: state.selectedFileId === id ? null : state.selectedFileId,
+        selectedFileIds: state.selectedFileIds.filter((fileId) => fileId !== id),
+      }));
+      return;
+    }
+
+    const node = {
+      ...target,
+      parentId: "trash",
+      updatedAt: new Date().toISOString(),
+    };
+    await saveFile(node);
     set((state) => ({
-      files: state.files.filter((item) => item.id !== id),
+      files: state.files.map((item) => (item.id === id ? node : item)),
       selectedFileId: state.selectedFileId === id ? null : state.selectedFileId,
       selectedFileIds: state.selectedFileIds.filter((fileId) => fileId !== id),
     }));

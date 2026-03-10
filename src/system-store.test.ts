@@ -185,4 +185,37 @@ describe("system store", () => {
     expect(useSystemStore.getState().files).toHaveLength(1);
     expect(storageMocks.deleteFile).not.toHaveBeenCalled();
   });
+
+  it("moves normal files to trash before deleting them permanently", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      files: [
+        {
+          id: "note-1",
+          name: "Note.md",
+          parentId: "desktop",
+          type: "text",
+          createdAt: "2026-03-10T00:00:00.000Z",
+          updatedAt: "2026-03-10T00:00:00.000Z",
+        },
+      ],
+      selectedFileId: "note-1",
+      selectedFileIds: ["note-1"],
+    });
+
+    await useSystemStore.getState().removeFile("note-1");
+
+    expect(useSystemStore.getState().files[0]).toMatchObject({
+      id: "note-1",
+      parentId: "trash",
+    });
+    expect(storageMocks.saveFile).toHaveBeenCalled();
+    expect(storageMocks.deleteFile).not.toHaveBeenCalled();
+
+    await useSystemStore.getState().removeFile("note-1");
+
+    expect(useSystemStore.getState().files).toHaveLength(0);
+    expect(storageMocks.deleteFile).toHaveBeenCalledWith("note-1");
+  });
 });

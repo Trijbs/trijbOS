@@ -130,6 +130,7 @@ export function FileExplorerApp() {
           {directoryEntries.map((entry) => {
             const isSelected = selectedFileIds.includes(entry.id);
             const isProtected = isProtectedFileNode(entry.id);
+            const isInTrash = entry.parentId === "trash";
             return (
               <article
                 className={`explorer-row ${isSelected ? "is-selected" : ""}`}
@@ -202,7 +203,13 @@ export function FileExplorerApp() {
                     <PencilLine size={14} />
                   </button>
                   <button
-                    aria-label={isProtected ? `${entry.name} cannot be deleted` : `Delete ${entry.name}`}
+                    aria-label={
+                      isProtected
+                        ? `${entry.name} cannot be deleted`
+                        : isInTrash
+                          ? `Delete ${entry.name} permanently`
+                          : `Move ${entry.name} to trash`
+                    }
                     disabled={isProtected}
                     onClick={() => void removeFile(entry.id)}
                     type="button"
