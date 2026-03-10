@@ -16,6 +16,15 @@ import {
   saveSession,
   saveThemePreference,
 } from "./storage";
+import {
+  focusWindowState,
+  getTopWindow,
+  launchAppWindowState,
+  maximizeWindowState,
+  minimizeWindowState,
+  toggleTaskbarWindowState,
+  updateWindowBoundsState,
+} from "./window-state";
 import type {
   AppId,
   FileNode,
@@ -73,29 +82,11 @@ type SystemState = {
   clearNotifications: () => Promise<void>;
 };
 
-const appTitles: Record<AppId, string> = {
-  "calculator": "Calculator",
-  "file-explorer": "File Explorer",
-  "media-viewer": "Media Viewer",
-  "notes": "Notes",
-  "settings": "Settings",
-  "terminal": "Terminal",
-};
-
 const defaultTheme: ThemePreference = {
   mode: "system",
   accent: "#7bf7bf",
   wallpaper:
     "radial-gradient(circle at 20% 20%, rgba(123, 247, 191, 0.35), transparent 28%), radial-gradient(circle at 80% 10%, rgba(90, 140, 255, 0.28), transparent 30%), linear-gradient(135deg, #0f1720 0%, #1d2834 52%, #28364d 100%)",
-};
-
-const defaultWindows: Record<AppId, WindowBounds> = {
-  "calculator": { x: 220, y: 88, width: 330, height: 460 },
-  "file-explorer": { x: 72, y: 72, width: 780, height: 520 },
-  "media-viewer": { x: 180, y: 92, width: 500, height: 400 },
-  "notes": { x: 140, y: 96, width: 560, height: 460 },
-  "settings": { x: 200, y: 84, width: 680, height: 520 },
-  "terminal": { x: 160, y: 110, width: 640, height: 420 },
 };
 
 let persistTimer: number | undefined;
@@ -118,22 +109,6 @@ function enqueuePersistence<T>(task: () => Promise<T>) {
     () => undefined,
   );
   return next;
-}
-
-function makeWindow(appId: AppId, zIndex: number): WindowState {
-  return {
-    id: `${appId}-${crypto.randomUUID()}`,
-    appId,
-    title: appTitles[appId],
-    bounds: defaultWindows[appId],
-    minimized: false,
-    maximized: false,
-    zIndex,
-  };
-}
-
-function getTopWindow(windows: WindowState[]) {
-  return [...windows].sort((left, right) => right.zIndex - left.zIndex)[0];
 }
 
 function normalizeHydratedState(payload: HydratedPayload) {
@@ -197,22 +172,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   },
   launchApp(appId, context) {
     set((state) => {
-      const highest = state.windows.reduce((max, item) => Math.max(max, item.zIndex), 0);
-      const existing = state.windows.find((item) => item.appId === appId && item.minimized);
-
-      if (existing) {
-        const windows = state.windows.map((item) =>
-          item.id === existing.id ? { ...item, minimized: false, zIndex: highest + 1 } : item,
-        );
-        withPersistedWindows(windows);
-        return {
-          launcherOpen: false,
-          selectedFileId: context?.fileId ?? state.selectedFileId,
-          windows,
-        };
-      }
-
-      const windows = [...state.windows, makeWindow(appId, highest + 1)];
+      const windows = launchAppWindowState(state.windows, appId);
       withPersistedWindows(windows);
       return {
         launcherOpen: false,
@@ -238,10 +198,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   },
   focusWindow(id) {
     set((state) => {
-      const highest = state.windows.reduce((max, item) => Math.max(max, item.zIndex), 0);
-      const windows = state.windows.map((item) =>
-        item.id === id ? { ...item, zIndex: highest + 1, minimized: false } : item,
-      );
+      const windows = focusWindowState(state.windows, id);
       withPersistedWindows(windows);
       return { windows };
     });
@@ -255,27 +212,21 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   },
   minimizeWindow(id) {
     set((state) => {
-      const windows = state.windows.map((item) =>
-        item.id === id ? { ...item, minimized: true } : item,
-      );
+      const windows = minimizeWindowState(state.windows, id);
       withPersistedWindows(windows);
       return { windows };
     });
   },
   maximizeWindow(id) {
     set((state) => {
-      const windows = state.windows.map((item) =>
-        item.id === id ? { ...item, maximized: !item.maximized, minimized: false } : item,
-      );
+      const windows = maximizeWindowState(state.windows, id);
       withPersistedWindows(windows);
       return { windows };
     });
   },
   updateWindowBounds(id, bounds) {
     set((state) => {
-      const windows = state.windows.map((item) =>
-        item.id === id ? { ...item, bounds, maximized: false } : item,
-      );
+      const windows = updateWindowBoundsState(state.windows, id, bounds);
       withPersistedWindows(windows);
       return { windows };
     });
@@ -305,28 +256,14 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     get().maximizeWindow(topWindow.id);
   },
   toggleTaskbarWindow(appId) {
-    const windows = get().windows
-      .filter((item) => item.appId === appId)
-      .sort((left, right) => right.zIndex - left.zIndex);
-    const target = windows[0];
-
-    if (!target) {
+    const result = toggleTaskbarWindowState(get().windows, appId);
+    if (result.type === "launch") {
       get().launchApp(appId);
       return;
     }
 
-    if (target.minimized) {
-      get().restoreWindow(target.id);
-      return;
-    }
-
-    const topWindow = getTopWindow(get().windows);
-    if (topWindow?.id === target.id) {
-      get().minimizeWindow(target.id);
-      return;
-    }
-
-    get().restoreWindow(target.id);
+    withPersistedWindows(result.windows);
+    set({ windows: result.windows });
   },
   async createFile(input) {
     const timestamp = new Date().toISOString();
