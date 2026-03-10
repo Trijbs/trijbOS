@@ -78,6 +78,8 @@ type SystemState = {
   updateFile: (id: string, patch: Partial<FileNode>) => Promise<void>;
   removeFile: (id: string) => Promise<void>;
   moveFiles: (fileIds: string[], parentId: string | null) => Promise<void>;
+  restoreFiles: (fileIds: string[]) => Promise<void>;
+  emptyTrash: () => Promise<void>;
   importBrowserFiles: (files: FileList, parentId?: string | null) => Promise<void>;
   importSnapshot: (file: File) => Promise<boolean>;
   resetWorkspace: () => Promise<void>;
@@ -272,6 +274,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       id: crypto.randomUUID(),
       name: input.name,
       parentId: input.parentId,
+      trashedFromId: null,
       type: input.type,
       content: input.content,
       createdAt: timestamp,
@@ -317,6 +320,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     const node = {
       ...target,
       parentId: "trash",
+      trashedFromId: target.parentId ?? "desktop",
       updatedAt: new Date().toISOString(),
     };
     await saveFile(node);
@@ -337,6 +341,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
         const nextItem = {
           ...item,
           parentId,
+          trashedFromId: parentId === "trash" ? item.parentId ?? "desktop" : null,
           updatedAt: timestamp,
         };
         await saveFile(nextItem);
@@ -348,6 +353,42 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       selectedFileId: fileIds[0] ?? null,
       selectedFileIds: fileIds,
     });
+  },
+  async restoreFiles(fileIds) {
+    const timestamp = new Date().toISOString();
+    const idSet = new Set(fileIds);
+    const nextFiles = await Promise.all(
+      get().files.map(async (item) => {
+        if (!idSet.has(item.id) || item.parentId !== "trash") {
+          return item;
+        }
+        const nextItem = {
+          ...item,
+          parentId: item.trashedFromId ?? "desktop",
+          trashedFromId: null,
+          updatedAt: timestamp,
+        };
+        await saveFile(nextItem);
+        return nextItem;
+      }),
+    );
+    set({
+      files: nextFiles,
+      selectedFileId: null,
+      selectedFileIds: [],
+    });
+  },
+  async emptyTrash() {
+    const trashFileIds = get().files
+      .filter((item) => item.parentId === "trash" && !isProtectedFileNode(item.id))
+      .map((item) => item.id);
+
+    await Promise.all(trashFileIds.map(async (id) => deleteFile(id)));
+    set((state) => ({
+      files: state.files.filter((item) => !trashFileIds.includes(item.id)),
+      selectedFileId: trashFileIds.includes(state.selectedFileId ?? "") ? null : state.selectedFileId,
+      selectedFileIds: state.selectedFileIds.filter((fileId) => !trashFileIds.includes(fileId)),
+    }));
   },
   async importBrowserFiles(fileList, parentId) {
     const targetParentId = parentId ?? get().activeDirectoryId ?? "downloads";

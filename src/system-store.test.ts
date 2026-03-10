@@ -209,6 +209,7 @@ describe("system store", () => {
     expect(useSystemStore.getState().files[0]).toMatchObject({
       id: "note-1",
       parentId: "trash",
+      trashedFromId: "desktop",
     });
     expect(storageMocks.saveFile).toHaveBeenCalled();
     expect(storageMocks.deleteFile).not.toHaveBeenCalled();
@@ -217,5 +218,67 @@ describe("system store", () => {
 
     expect(useSystemStore.getState().files).toHaveLength(0);
     expect(storageMocks.deleteFile).toHaveBeenCalledWith("note-1");
+  });
+
+  it("restores trashed files to their previous parent", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      files: [
+        {
+          id: "note-1",
+          name: "Note.md",
+          parentId: "trash",
+          trashedFromId: "documents",
+          type: "text",
+          createdAt: "2026-03-10T00:00:00.000Z",
+          updatedAt: "2026-03-10T00:00:00.000Z",
+        },
+      ],
+      selectedFileId: "note-1",
+      selectedFileIds: ["note-1"],
+    });
+
+    await useSystemStore.getState().restoreFiles(["note-1"]);
+
+    expect(useSystemStore.getState().files[0]).toMatchObject({
+      id: "note-1",
+      parentId: "documents",
+      trashedFromId: null,
+    });
+  });
+
+  it("empties trash without touching non-trash files", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      files: [
+        {
+          id: "trash-note",
+          name: "Trash Note.md",
+          parentId: "trash",
+          trashedFromId: "desktop",
+          type: "text",
+          createdAt: "2026-03-10T00:00:00.000Z",
+          updatedAt: "2026-03-10T00:00:00.000Z",
+        },
+        {
+          id: "desktop-note",
+          name: "Desktop Note.md",
+          parentId: "desktop",
+          type: "text",
+          createdAt: "2026-03-10T00:00:00.000Z",
+          updatedAt: "2026-03-10T00:00:00.000Z",
+        },
+      ],
+      selectedFileId: "trash-note",
+      selectedFileIds: ["trash-note"],
+    });
+
+    await useSystemStore.getState().emptyTrash();
+
+    expect(useSystemStore.getState().files).toHaveLength(1);
+    expect(useSystemStore.getState().files[0].id).toBe("desktop-note");
+    expect(storageMocks.deleteFile).toHaveBeenCalledWith("trash-note");
   });
 });

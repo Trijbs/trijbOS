@@ -14,6 +14,7 @@ export type FileNode = {
   id: string;
   name: string;
   parentId: string | null;
+  trashedFromId?: string | null;
   type: FileKind;
   content?: string;
   mimeType?: string;

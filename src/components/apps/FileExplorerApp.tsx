@@ -1,4 +1,4 @@
-import { CheckSquare, FileText, Folder, Image, MoveRight, PencilLine, Square, Trash2 } from "lucide-react";
+import { CheckSquare, FileText, Folder, Image, MoveRight, PencilLine, RotateCcw, Square, Trash2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { isProtectedFileNode } from "../../filesystem-roots";
 import { buildBreadcrumbs, getMoveTargets, sortDirectoryEntries, toggleFileSelection } from "../../file-utils";
@@ -15,6 +15,8 @@ export function FileExplorerApp() {
   const updateFile = useSystemStore((state) => state.updateFile);
   const removeFile = useSystemStore((state) => state.removeFile);
   const moveFiles = useSystemStore((state) => state.moveFiles);
+  const restoreFiles = useSystemStore((state) => state.restoreFiles);
+  const emptyTrash = useSystemStore((state) => state.emptyTrash);
   const importBrowserFiles = useSystemStore((state) => state.importBrowserFiles);
   const openFile = useSystemStore((state) => state.openFile);
   const [renameId, setRenameId] = useState<string | null>(null);
@@ -31,6 +33,10 @@ export function FileExplorerApp() {
   );
   const breadcrumbs = buildBreadcrumbs(files, activeDirectoryId);
   const selectedEntry = files.find((item) => item.id === selectedFileId) ?? null;
+  const isTrashDirectory = activeDirectoryId === "trash";
+  const selectedTrashIds = selectedFileIds.filter((fileId) =>
+    files.some((item) => item.id === fileId && item.parentId === "trash"),
+  );
 
   const toggleSelection = (id: string) => {
     const next = toggleFileSelection(selectedFileIds, id);
@@ -69,6 +75,15 @@ export function FileExplorerApp() {
             ))}
           </div>
           <div className="toolbar-actions">
+            {isTrashDirectory ? (
+              <button
+                disabled={!files.some((item) => item.parentId === "trash")}
+                onClick={() => void emptyTrash()}
+                type="button"
+              >
+                Empty Trash
+              </button>
+            ) : null}
             <button
               onClick={() =>
                 void createFile({
@@ -117,6 +132,12 @@ export function FileExplorerApp() {
           <div className="selection-bar">
             <span>{selectedFileIds.length} selected</span>
             <div className="selection-actions">
+              {selectedTrashIds.length > 0 ? (
+                <button onClick={() => void restoreFiles(selectedTrashIds)} type="button">
+                  <RotateCcw size={14} />
+                  <span>Restore</span>
+                </button>
+              ) : null}
               {moveTargets.map((folder) => (
                 <button key={folder.id} onClick={() => void moveFiles(selectedFileIds, folder.id)} type="button">
                   <MoveRight size={14} />
@@ -194,6 +215,11 @@ export function FileExplorerApp() {
                       Open
                     </button>
                   )}
+                  {isInTrash ? (
+                    <button onClick={() => void restoreFiles([entry.id])} type="button">
+                      <RotateCcw size={14} />
+                    </button>
+                  ) : null}
                   <button
                     aria-label={isProtected ? `${entry.name} cannot be renamed` : `Rename ${entry.name}`}
                     disabled={isProtected}
