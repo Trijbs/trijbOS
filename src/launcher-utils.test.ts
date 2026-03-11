@@ -46,4 +46,12 @@ describe("launcher utils", () => {
       detail: "Desktop",
     });
   });
+
+  it("includes layout presets in launcher results", () => {
+    const results = buildLauncherResults(files, "builder");
+    expect(results[0]).toMatchObject({
+      kind: "layout",
+      id: "builder",
+    });
+  });
 });

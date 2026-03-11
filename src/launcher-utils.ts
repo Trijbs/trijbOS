@@ -1,10 +1,12 @@
 import { appDefinitions } from "./apps";
 import { buildFilePath } from "./file-utils";
+import { layoutPresets, type LayoutPresetId } from "./layout-presets";
 import type { AppId, FileNode } from "./types";
 
 export type LauncherResult =
   | { id: AppId; kind: "app"; label: string; detail: string; score: number }
-  | { id: string; kind: "file"; label: string; detail: string; score: number };
+  | { id: string; kind: "file"; label: string; detail: string; score: number }
+  | { id: LayoutPresetId; kind: "layout"; label: string; detail: string; score: number };
 
 function scoreMatch(label: string, haystack: string, normalizedQuery: string) {
   if (normalizedQuery.length === 0) {
@@ -62,7 +64,20 @@ export function buildLauncherResults(files: FileNode[], query: string): Launcher
         })
         .filter((result) => result.score >= 0);
 
-  return [...appResults, ...fileResults]
+  const layoutResults: LauncherResult[] = layoutPresets
+    .map((preset) => {
+      const haystack = `${preset.name} ${preset.description} layout preset workspace windows`.toLowerCase();
+      return {
+        id: preset.id,
+        kind: "layout" as const,
+        label: preset.name,
+        detail: `Layout preset: ${preset.description}`,
+        score: scoreMatch(preset.name, haystack, normalized),
+      };
+    })
+    .filter((result) => result.score >= 0);
+
+  return [...appResults, ...layoutResults, ...fileResults]
     .sort((left, right) => right.score - left.score || left.label.localeCompare(right.label))
     .slice(0, 8);
 }

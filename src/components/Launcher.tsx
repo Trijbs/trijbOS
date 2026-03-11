@@ -8,6 +8,7 @@ export function Launcher() {
   const launchApp = useSystemStore((state) => state.launchApp);
   const files = useSystemStore((state) => state.files);
   const openFile = useSystemStore((state) => state.openFile);
+  const applyLayoutPreset = useSystemStore((state) => state.applyLayoutPreset);
 
   const results = useMemo<LauncherResult[]>(() => {
     return buildLauncherResults(files, query);
@@ -23,6 +24,10 @@ export function Launcher() {
     }
     if (result.kind === "app") {
       launchApp(result.id);
+      return;
+    }
+    if (result.kind === "layout") {
+      applyLayoutPreset(result.id);
       return;
     }
     openFile(result.id);

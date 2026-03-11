@@ -176,6 +176,15 @@ test("settings can apply a reusable layout preset", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Notes" })).toHaveAttribute("data-snap", "bottom-right");
 });
 
+test("launcher can apply a reusable layout preset", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "builder");
+
+  await expect(page.getByRole("dialog", { name: "File Explorer" })).toHaveAttribute("data-snap", "left");
+  await expect(page.getByRole("dialog", { name: "Terminal" })).toHaveAttribute("data-snap", "top-right");
+  await expect(page.getByRole("dialog", { name: "Notes" })).toHaveAttribute("data-snap", "bottom-right");
+});
+
 test("keyboard shortcuts snap the active window left and right", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "terminal");
