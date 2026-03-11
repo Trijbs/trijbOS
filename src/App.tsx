@@ -18,6 +18,7 @@ export function App() {
   const launchApp = useSystemStore((state) => state.launchApp);
   const closeTopWindow = useSystemStore((state) => state.closeTopWindow);
   const minimizeTopWindow = useSystemStore((state) => state.minimizeTopWindow);
+  const snapTopWindow = useSystemStore((state) => state.snapTopWindow);
   const toggleTopWindowMaximize = useSystemStore((state) => state.toggleTopWindowMaximize);
   const files = useSystemStore((state) => state.files);
   const openFile = useSystemStore((state) => state.openFile);
@@ -30,6 +31,7 @@ export function App() {
   useShellShortcuts({
     closeTopWindow,
     minimizeTopWindow,
+    snapTopWindow,
     toggleTopWindowMaximize,
   });
 

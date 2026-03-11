@@ -1,4 +1,5 @@
 export type KeyboardShortcutInput = {
+  altKey: boolean;
   ctrlKey: boolean;
   metaKey: boolean;
   shiftKey: boolean;
@@ -11,6 +12,8 @@ export type KeyboardShortcutCommand =
   | "close-top-window"
   | "minimize-top-window"
   | "maximize-top-window"
+  | "snap-top-window-left"
+  | "snap-top-window-right"
   | "dismiss-overlays";
 
 export function getKeyboardShortcutCommand(
@@ -37,6 +40,14 @@ export function getKeyboardShortcutCommand(
 
   if (normalizedKey === "w") {
     return "close-top-window";
+  }
+
+  if (input.altKey && input.key === "ArrowLeft") {
+    return "snap-top-window-left";
+  }
+
+  if (input.altKey && input.key === "ArrowRight") {
+    return "snap-top-window-right";
   }
 
   if (input.shiftKey && normalizedKey === "m") {

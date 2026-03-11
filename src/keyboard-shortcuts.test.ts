@@ -5,6 +5,7 @@ describe("keyboard shortcuts", () => {
   it("opens the launcher with command/control + k", () => {
     expect(
       getKeyboardShortcutCommand({
+        altKey: false,
         ctrlKey: true,
         metaKey: false,
         shiftKey: false,
@@ -16,6 +17,7 @@ describe("keyboard shortcuts", () => {
   it("opens settings with command/control + comma", () => {
     expect(
       getKeyboardShortcutCommand({
+        altKey: false,
         ctrlKey: false,
         metaKey: true,
         shiftKey: false,
@@ -27,6 +29,7 @@ describe("keyboard shortcuts", () => {
   it("prioritizes maximize over minimize for command/control + shift + m", () => {
     expect(
       getKeyboardShortcutCommand({
+        altKey: false,
         ctrlKey: true,
         metaKey: false,
         shiftKey: true,
@@ -38,6 +41,7 @@ describe("keyboard shortcuts", () => {
   it("minimizes the top window with command/control + m", () => {
     expect(
       getKeyboardShortcutCommand({
+        altKey: false,
         ctrlKey: false,
         metaKey: true,
         shiftKey: false,
@@ -49,6 +53,7 @@ describe("keyboard shortcuts", () => {
   it("dismisses overlays with escape without modifiers", () => {
     expect(
       getKeyboardShortcutCommand({
+        altKey: false,
         ctrlKey: false,
         metaKey: false,
         shiftKey: false,
@@ -57,9 +62,34 @@ describe("keyboard shortcuts", () => {
     ).toBe("dismiss-overlays");
   });
 
+  it("snaps the top window left with command/control + alt + left", () => {
+    expect(
+      getKeyboardShortcutCommand({
+        altKey: true,
+        ctrlKey: true,
+        metaKey: false,
+        shiftKey: false,
+        key: "ArrowLeft",
+      }),
+    ).toBe("snap-top-window-left");
+  });
+
+  it("snaps the top window right with command/control + alt + right", () => {
+    expect(
+      getKeyboardShortcutCommand({
+        altKey: true,
+        ctrlKey: false,
+        metaKey: true,
+        shiftKey: false,
+        key: "ArrowRight",
+      }),
+    ).toBe("snap-top-window-right");
+  });
+
   it("ignores unrelated keys", () => {
     expect(
       getKeyboardShortcutCommand({
+        altKey: false,
         ctrlKey: false,
         metaKey: false,
         shiftKey: false,

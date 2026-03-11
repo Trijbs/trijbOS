@@ -5,12 +5,14 @@ import { useSystemStore } from "./system-store";
 type ShellShortcutHandlers = {
   closeTopWindow: () => void;
   minimizeTopWindow: () => void;
+  snapTopWindow: (snap: "left" | "right") => void;
   toggleTopWindowMaximize: () => void;
 };
 
 export function useShellShortcuts({
   closeTopWindow,
   minimizeTopWindow,
+  snapTopWindow,
   toggleTopWindowMaximize,
 }: ShellShortcutHandlers) {
   useEffect(() => {
@@ -37,6 +39,12 @@ export function useShellShortcuts({
         case "minimize-top-window":
           minimizeTopWindow();
           break;
+        case "snap-top-window-left":
+          snapTopWindow("left");
+          break;
+        case "snap-top-window-right":
+          snapTopWindow("right");
+          break;
         case "dismiss-overlays":
           useSystemStore.getState().toggleLauncher(false);
           useSystemStore.getState().toggleNotifications(false);
@@ -46,5 +54,5 @@ export function useShellShortcuts({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeTopWindow, minimizeTopWindow, toggleTopWindowMaximize]);
+  }, [closeTopWindow, minimizeTopWindow, snapTopWindow, toggleTopWindowMaximize]);
 }

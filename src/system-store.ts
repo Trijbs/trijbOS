@@ -82,6 +82,7 @@ type SystemState = {
   minimizeWindow: (id: string) => void;
   maximizeWindow: (id: string) => void;
   snapWindow: (id: string, snap: "left" | "right") => void;
+  snapTopWindow: (snap: "left" | "right") => void;
   updateWindowBounds: (id: string, bounds: WindowBounds) => void;
   restoreWindow: (id: string) => void;
   closeTopWindow: () => void;
@@ -293,6 +294,13 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       withPersistedWindows(windows);
       return { windows };
     });
+  },
+  snapTopWindow(snap) {
+    const topWindow = getTopWindow(get().windows);
+    if (!topWindow) {
+      return;
+    }
+    get().snapWindow(topWindow.id, snap);
   },
   updateWindowBounds(id, bounds) {
     set((state) => {
