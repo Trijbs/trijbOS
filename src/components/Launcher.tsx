@@ -46,6 +46,8 @@ export function Launcher() {
         aria-haspopup="listbox"
         autoFocus
         className="launcher-input"
+        id="launcher-search"
+        name="launcher-search"
         onChange={(event) => setQuery(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "ArrowDown") {

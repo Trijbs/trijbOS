@@ -47,6 +47,8 @@ export function NotesApp() {
         </header>
         <textarea
           className="notes-textarea"
+          id="notes-editor"
+          name="notes-editor"
           onChange={(event) =>
             void updateFile(current.id, {
               content: event.target.value,

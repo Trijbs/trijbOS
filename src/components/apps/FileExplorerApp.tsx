@@ -115,7 +115,9 @@ export function FileExplorerApp() {
             </button>
             <input
               hidden
+              id="file-explorer-upload"
               multiple
+              name="file-explorer-upload"
               onChange={(event) => {
                 const uploaded = event.target.files;
                 if (uploaded && uploaded.length > 0) {
@@ -185,6 +187,8 @@ export function FileExplorerApp() {
                         autoFocus
                         className="inline-input"
                         defaultValue={entry.name}
+                        id={`rename-${entry.id}`}
+                        name={`rename-${entry.id}`}
                         onBlur={(event) => {
                           void updateFile(entry.id, { name: event.target.value.trim() || entry.name });
                           setRenameId(null);

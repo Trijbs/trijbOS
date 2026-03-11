@@ -124,6 +124,8 @@ export function SettingsApp() {
                               aria-label={`Edit ${preset.name} layout name`}
                               autoFocus
                               className="inline-input"
+                              id={`layout-name-${preset.id}`}
+                              name={`layout-name-${preset.id}`}
                               onChange={(event) => setEditingPresetName(event.target.value)}
                               value={editingPresetName}
                             />
@@ -231,6 +233,8 @@ export function SettingsApp() {
         <input
           accept="application/json"
           hidden
+          id="snapshot-import"
+          name="snapshot-import"
           onChange={(event) => {
             const file = event.target.files?.[0];
             if (!file) {
