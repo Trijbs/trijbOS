@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDragSnapTarget, getSnapBounds } from "./window-snap";
+import { getDragSnapTarget, getSnapBounds, getUnsnapBounds } from "./window-snap";
 
 describe("window snap helpers", () => {
   it("computes left snap bounds for the current viewport", () => {
@@ -30,5 +30,37 @@ describe("window snap helpers", () => {
 
   it("ignores drags away from snap edges", () => {
     expect(getDragSnapTarget(240, 480, 1440)).toBeNull();
+  });
+
+  it("releases a left snapped window into floating bounds", () => {
+    expect(
+      getUnsnapBounds(
+        "left",
+        { x: 140, y: 96, width: 560, height: 460 },
+        1440,
+        900,
+      ),
+    ).toEqual({
+      x: 24,
+      y: 96,
+      width: 560,
+      height: 460,
+    });
+  });
+
+  it("releases a right snapped window into floating bounds near the right edge", () => {
+    expect(
+      getUnsnapBounds(
+        "right",
+        { x: 140, y: 96, width: 560, height: 460 },
+        1440,
+        900,
+      ),
+    ).toEqual({
+      x: 856,
+      y: 96,
+      width: 560,
+      height: 460,
+    });
   });
 });

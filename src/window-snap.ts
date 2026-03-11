@@ -31,3 +31,19 @@ export function getDragSnapTarget(
 
   return null;
 }
+
+export function getUnsnapBounds(
+  snap: "left" | "right",
+  bounds: WindowBounds,
+  viewportWidth: number,
+  viewportHeight: number,
+): WindowBounds {
+  const maxX = Math.max(24, viewportWidth - bounds.width - 24);
+  const maxY = Math.max(24, viewportHeight - bounds.height - 96);
+
+  return {
+    ...bounds,
+    x: snap === "left" ? 24 : maxX,
+    y: Math.min(Math.max(bounds.y, 24), maxY),
+  };
+}

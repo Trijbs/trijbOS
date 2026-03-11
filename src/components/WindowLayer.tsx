@@ -3,7 +3,7 @@ import { Rnd } from "react-rnd";
 import { Minus, PanelLeft, PanelRight, Square, X } from "lucide-react";
 import { appDefinitions } from "../apps";
 import { useSystemStore } from "../system-store";
-import { getDragSnapTarget, getSnapBounds } from "../window-snap";
+import { getDragSnapTarget, getSnapBounds, getUnsnapBounds } from "../window-snap";
 
 function cycleWindowFocus(event: React.KeyboardEvent<HTMLDivElement>) {
   if (event.key !== "Tab") {
@@ -100,7 +100,7 @@ export function WindowLayer() {
           <Rnd
             bounds="parent"
             className={`window-frame ${topWindowId === windowState.id ? "is-focused" : ""}`}
-            disableDragging={windowState.maximized || isSnapped}
+            disableDragging={windowState.maximized}
             enableResizing={windowState.maximized ? false : app.resizable ?? true}
             key={windowState.id}
             minHeight={app.minHeight ?? 280}
@@ -112,6 +112,17 @@ export function WindowLayer() {
             onDragStart={() => {
               setDragPreview(null);
               focusWindow(windowState.id);
+              if (windowState.snap) {
+                updateWindowBounds(
+                  windowState.id,
+                  getUnsnapBounds(
+                    windowState.snap,
+                    windowState.bounds,
+                    window.innerWidth,
+                    window.innerHeight,
+                  ),
+                );
+              }
             }}
             onFocus={() => focusWindow(windowState.id)}
             onKeyDown={cycleWindowFocus}
