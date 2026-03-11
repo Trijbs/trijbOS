@@ -28,6 +28,7 @@ import {
   launchAppWindowState,
   maximizeWindowState,
   minimizeWindowState,
+  snapWindowState,
   toggleTaskbarWindowState,
   updateWindowBoundsState,
 } from "./window-state";
@@ -49,6 +50,13 @@ type HydratedPayload = {
   workspace: WorkspaceState;
   windows: WindowState[];
 };
+
+function normalizeWindows(windows: WindowState[]) {
+  return windows.map((item) => ({
+    ...item,
+    snap: item.snap ?? null,
+  }));
+}
 
 type SystemState = {
   hydrated: boolean;
@@ -73,6 +81,7 @@ type SystemState = {
   closeWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
   maximizeWindow: (id: string) => void;
+  snapWindow: (id: string, snap: "left" | "right") => void;
   updateWindowBounds: (id: string, bounds: WindowBounds) => void;
   restoreWindow: (id: string) => void;
   closeTopWindow: () => void;
@@ -134,7 +143,7 @@ function normalizeHydratedState(payload: HydratedPayload) {
     selectedFileId: payload.workspace.selectedFileIds[0] ?? null,
     selectedFileIds: payload.workspace.selectedFileIds,
     theme: payload.theme,
-    windows: payload.windows,
+    windows: normalizeWindows(payload.windows),
   };
 }
 
@@ -274,6 +283,13 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   maximizeWindow(id) {
     set((state) => {
       const windows = maximizeWindowState(state.windows, id);
+      withPersistedWindows(windows);
+      return { windows };
+    });
+  },
+  snapWindow(id, snap) {
+    set((state) => {
+      const windows = snapWindowState(state.windows, id, snap);
       withPersistedWindows(windows);
       return { windows };
     });

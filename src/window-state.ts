@@ -26,6 +26,7 @@ export function makeWindow(appId: AppId, zIndex: number): WindowState {
     bounds: defaultWindowBounds[appId],
     minimized: false,
     maximized: false,
+    snap: null,
     zIndex,
   };
 }
@@ -51,13 +52,32 @@ export function minimizeWindowState(windows: WindowState[], id: string) {
 
 export function maximizeWindowState(windows: WindowState[], id: string) {
   return windows.map((item) =>
-    item.id === id ? { ...item, maximized: !item.maximized, minimized: false } : item,
+    item.id === id
+      ? { ...item, maximized: !item.maximized, minimized: false, snap: null }
+      : item,
   );
 }
 
 export function updateWindowBoundsState(windows: WindowState[], id: string, bounds: WindowBounds) {
   return windows.map((item) =>
-    item.id === id ? { ...item, bounds, maximized: false } : item,
+    item.id === id ? { ...item, bounds, maximized: false, snap: null } : item,
+  );
+}
+
+export function snapWindowState(
+  windows: WindowState[],
+  id: string,
+  snap: "left" | "right",
+) {
+  return windows.map((item) =>
+    item.id === id
+      ? {
+          ...item,
+          maximized: false,
+          minimized: false,
+          snap: item.snap === snap ? null : snap,
+        }
+      : item,
   );
 }
 

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Rnd } from "react-rnd";
-import { Minus, Square, X } from "lucide-react";
+import { Minus, PanelLeft, PanelRight, Square, X } from "lucide-react";
 import { appDefinitions } from "../apps";
 import { useSystemStore } from "../system-store";
 
@@ -68,6 +68,7 @@ export function WindowLayer() {
   const closeWindow = useSystemStore((state) => state.closeWindow);
   const minimizeWindow = useSystemStore((state) => state.minimizeWindow);
   const maximizeWindow = useSystemStore((state) => state.maximizeWindow);
+  const snapWindow = useSystemStore((state) => state.snapWindow);
   const updateWindowBounds = useSystemStore((state) => state.updateWindowBounds);
 
   return (
@@ -76,15 +77,25 @@ export function WindowLayer() {
         const app = appDefinitions[windowState.appId];
         const Icon = app.icon;
         const Component = app.component;
+        const halfWidth = (window.innerWidth - 36) / 2;
+        const snappedBounds = windowState.snap
+          ? {
+              x: windowState.snap === "left" ? 12 : halfWidth + 24,
+              y: 12,
+              width: halfWidth,
+              height: window.innerHeight - 88,
+            }
+          : null;
         const bounds = windowState.maximized
           ? { x: 12, y: 12, width: window.innerWidth - 24, height: window.innerHeight - 88 }
-          : windowState.bounds;
+          : snappedBounds ?? windowState.bounds;
+        const isSnapped = windowState.snap !== null;
 
         return (
           <Rnd
             bounds="parent"
             className={`window-frame ${topWindowId === windowState.id ? "is-focused" : ""}`}
-            disableDragging={windowState.maximized}
+            disableDragging={windowState.maximized || isSnapped}
             enableResizing={windowState.maximized ? false : app.resizable ?? true}
             key={windowState.id}
             minHeight={app.minHeight ?? 280}
@@ -116,6 +127,7 @@ export function WindowLayer() {
             aria-labelledby={`window-title-${windowState.id}`}
             aria-modal={false}
             data-maximized={windowState.maximized}
+            data-snap={windowState.snap ?? undefined}
             tabIndex={0}
           >
             <div
@@ -130,6 +142,22 @@ export function WindowLayer() {
                 <span>{windowState.title}</span>
               </div>
               <div className="window-controls">
+                <button
+                  aria-label={`Snap ${windowState.title} left`}
+                  aria-pressed={windowState.snap === "left"}
+                  onClick={() => snapWindow(windowState.id, "left")}
+                  type="button"
+                >
+                  <PanelLeft size={14} />
+                </button>
+                <button
+                  aria-label={`Snap ${windowState.title} right`}
+                  aria-pressed={windowState.snap === "right"}
+                  onClick={() => snapWindow(windowState.id, "right")}
+                  type="button"
+                >
+                  <PanelRight size={14} />
+                </button>
                 <button aria-label={`Minimize ${windowState.title}`} onClick={() => minimizeWindow(windowState.id)} type="button">
                   <Minus size={14} />
                 </button>

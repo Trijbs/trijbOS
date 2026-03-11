@@ -5,6 +5,7 @@ import {
   launchAppWindowState,
   maximizeWindowState,
   minimizeWindowState,
+  snapWindowState,
   toggleTaskbarWindowState,
   updateWindowBoundsState,
 } from "./window-state";
@@ -18,6 +19,7 @@ const baseWindows: WindowState[] = [
     bounds: { x: 10, y: 10, width: 400, height: 300 },
     minimized: false,
     maximized: false,
+    snap: null,
     zIndex: 1,
   },
   {
@@ -27,6 +29,7 @@ const baseWindows: WindowState[] = [
     bounds: { x: 20, y: 20, width: 500, height: 400 },
     minimized: false,
     maximized: false,
+    snap: null,
     zIndex: 2,
   },
 ];
@@ -74,6 +77,7 @@ describe("window state helpers", () => {
   it("toggles top-window maximize state", () => {
     const next = maximizeWindowState(baseWindows, "settings-1");
     expect(next.find((item) => item.id === "settings-1")?.maximized).toBe(true);
+    expect(next.find((item) => item.id === "settings-1")?.snap).toBeNull();
   });
 
   it("drops maximized state when bounds are updated", () => {
@@ -87,7 +91,38 @@ describe("window state helpers", () => {
 
     expect(next.find((item) => item.id === "settings-1")).toMatchObject({
       maximized: false,
+      snap: null,
       bounds: { x: 50, y: 60, width: 640, height: 480 },
+    });
+  });
+
+  it("toggles snap state for a window", () => {
+    const snappedLeft = snapWindowState(baseWindows, "settings-1", "left");
+    expect(snappedLeft.find((item) => item.id === "settings-1")).toMatchObject({
+      minimized: false,
+      maximized: false,
+      snap: "left",
+    });
+
+    const unsnapped = snapWindowState(snappedLeft, "settings-1", "left");
+    expect(unsnapped.find((item) => item.id === "settings-1")?.snap).toBeNull();
+
+    const snappedRight = snapWindowState(unsnapped, "settings-1", "right");
+    expect(snappedRight.find((item) => item.id === "settings-1")?.snap).toBe("right");
+  });
+
+  it("clears snap state when bounds are updated manually", () => {
+    const snapped = snapWindowState(baseWindows, "notes-1", "left");
+    const next = updateWindowBoundsState(snapped, "notes-1", {
+      x: 30,
+      y: 40,
+      width: 520,
+      height: 360,
+    });
+
+    expect(next.find((item) => item.id === "notes-1")).toMatchObject({
+      snap: null,
+      bounds: { x: 30, y: 40, width: 520, height: 360 },
     });
   });
 
