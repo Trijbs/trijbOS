@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Rnd } from "react-rnd";
 import { Minus, PanelLeft, PanelRight, Square, X } from "lucide-react";
 import { appDefinitions } from "../apps";
 import { useSystemStore } from "../system-store";
+import { getDragSnapTarget, getSnapBounds } from "../window-snap";
 
 function cycleWindowFocus(event: React.KeyboardEvent<HTMLDivElement>) {
   if (event.key !== "Tab") {
@@ -55,6 +56,10 @@ function cycleWindowFocus(event: React.KeyboardEvent<HTMLDivElement>) {
 }
 
 export function WindowLayer() {
+  const [dragPreview, setDragPreview] = useState<{
+    target: "left" | "right";
+    windowId: string;
+  } | null>(null);
   const windowStateItems = useSystemStore((state) => state.windows);
   const windows = useMemo(
     () =>
@@ -73,18 +78,18 @@ export function WindowLayer() {
 
   return (
     <div className="window-layer">
+      {dragPreview ? (
+        <div
+          className="window-snap-preview"
+          style={getSnapBounds(dragPreview.target, window.innerWidth, window.innerHeight)}
+        />
+      ) : null}
       {windows.map((windowState) => {
         const app = appDefinitions[windowState.appId];
         const Icon = app.icon;
         const Component = app.component;
-        const halfWidth = (window.innerWidth - 36) / 2;
         const snappedBounds = windowState.snap
-          ? {
-              x: windowState.snap === "left" ? 12 : halfWidth + 24,
-              y: 12,
-              width: halfWidth,
-              height: window.innerHeight - 88,
-            }
+          ? getSnapBounds(windowState.snap, window.innerWidth, window.innerHeight)
           : null;
         const bounds = windowState.maximized
           ? { x: 12, y: 12, width: window.innerWidth - 24, height: window.innerHeight - 88 }
@@ -100,16 +105,29 @@ export function WindowLayer() {
             key={windowState.id}
             minHeight={app.minHeight ?? 280}
             minWidth={app.minWidth ?? 320}
-            onDragStart={() => focusWindow(windowState.id)}
+            onDrag={(_, data) => {
+              const target = getDragSnapTarget(data.x, windowState.bounds.width, window.innerWidth);
+              setDragPreview(target ? { target, windowId: windowState.id } : null);
+            }}
+            onDragStart={() => {
+              setDragPreview(null);
+              focusWindow(windowState.id);
+            }}
             onFocus={() => focusWindow(windowState.id)}
             onKeyDown={cycleWindowFocus}
-            onDragStop={(_, data) =>
+            onDragStop={(_, data) => {
+              const target = getDragSnapTarget(data.x, windowState.bounds.width, window.innerWidth);
+              setDragPreview(null);
+              if (target) {
+                snapWindow(windowState.id, target);
+                return;
+              }
               updateWindowBounds(windowState.id, {
                 ...windowState.bounds,
                 x: data.x,
                 y: data.y,
-              })
-            }
+              });
+            }}
             onMouseDown={() => focusWindow(windowState.id)}
             onResizeStop={(_, __, ref, ___, position) =>
               updateWindowBounds(windowState.id, {

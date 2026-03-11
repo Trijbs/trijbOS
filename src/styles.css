@@ -145,6 +145,18 @@ button {
   position: absolute;
 }
 
+.window-snap-preview {
+  background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.06));
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, rgba(255, 255, 255, 0.18));
+  border-radius: 20px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+  pointer-events: none;
+  position: absolute;
+  z-index: 999;
+}
+
 .window-frame {
   backdrop-filter: blur(18px);
   background: var(--surface);
