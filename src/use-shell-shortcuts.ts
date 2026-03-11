@@ -5,7 +5,7 @@ import { useSystemStore } from "./system-store";
 type ShellShortcutHandlers = {
   closeTopWindow: () => void;
   minimizeTopWindow: () => void;
-  snapTopWindow: (snap: "left" | "right") => void;
+  snapTopWindow: (snap: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right") => void;
   toggleTopWindowMaximize: () => void;
 };
 
@@ -44,6 +44,18 @@ export function useShellShortcuts({
           break;
         case "snap-top-window-right":
           snapTopWindow("right");
+          break;
+        case "snap-top-window-top-left":
+          snapTopWindow("top-left");
+          break;
+        case "snap-top-window-top-right":
+          snapTopWindow("top-right");
+          break;
+        case "snap-top-window-bottom-left":
+          snapTopWindow("bottom-left");
+          break;
+        case "snap-top-window-bottom-right":
+          snapTopWindow("bottom-right");
           break;
         case "dismiss-overlays":
           useSystemStore.getState().toggleLauncher(false);

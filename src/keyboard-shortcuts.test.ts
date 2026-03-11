@@ -86,6 +86,54 @@ describe("keyboard shortcuts", () => {
     ).toBe("snap-top-window-right");
   });
 
+  it("snaps the top window into the top-left quarter with command/control + alt + shift + left", () => {
+    expect(
+      getKeyboardShortcutCommand({
+        altKey: true,
+        ctrlKey: true,
+        metaKey: false,
+        shiftKey: true,
+        key: "ArrowLeft",
+      }),
+    ).toBe("snap-top-window-top-left");
+  });
+
+  it("snaps the top window into the top-right quarter with command/control + alt + shift + right", () => {
+    expect(
+      getKeyboardShortcutCommand({
+        altKey: true,
+        ctrlKey: false,
+        metaKey: true,
+        shiftKey: true,
+        key: "ArrowRight",
+      }),
+    ).toBe("snap-top-window-top-right");
+  });
+
+  it("snaps the top window into the bottom-left quarter with command/control + alt + shift + up", () => {
+    expect(
+      getKeyboardShortcutCommand({
+        altKey: true,
+        ctrlKey: true,
+        metaKey: false,
+        shiftKey: true,
+        key: "ArrowUp",
+      }),
+    ).toBe("snap-top-window-bottom-left");
+  });
+
+  it("snaps the top window into the bottom-right quarter with command/control + alt + shift + down", () => {
+    expect(
+      getKeyboardShortcutCommand({
+        altKey: true,
+        ctrlKey: false,
+        metaKey: true,
+        shiftKey: true,
+        key: "ArrowDown",
+      }),
+    ).toBe("snap-top-window-bottom-right");
+  });
+
   it("ignores unrelated keys", () => {
     expect(
       getKeyboardShortcutCommand({

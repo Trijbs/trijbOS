@@ -163,6 +163,24 @@ test("keyboard shortcuts snap the active window left and right", async ({ page }
   await expect(terminalWindow).toHaveAttribute("data-snap", "right");
 });
 
+test("keyboard shortcuts quarter-tile the active window", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await page.keyboard.press(`${commandChord("Alt+Shift+ArrowLeft")}`);
+  await expect(terminalWindow).toHaveAttribute("data-snap", "top-left");
+
+  await page.keyboard.press(`${commandChord("Alt+Shift+ArrowRight")}`);
+  await expect(terminalWindow).toHaveAttribute("data-snap", "top-right");
+
+  await page.keyboard.press(`${commandChord("Alt+Shift+ArrowUp")}`);
+  await expect(terminalWindow).toHaveAttribute("data-snap", "bottom-left");
+
+  await page.keyboard.press(`${commandChord("Alt+Shift+ArrowDown")}`);
+  await expect(terminalWindow).toHaveAttribute("data-snap", "bottom-right");
+});
+
 test("dragging a snapped window releases it back to floating mode", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "terminal");
