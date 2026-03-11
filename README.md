@@ -70,6 +70,18 @@ For browser validation:
 npm run test:e2e
 ```
 
+## GitHub Pages Deployment
+
+The repo now includes a Pages workflow at `.github/workflows/deploy-pages.yml` and a checked-in custom domain file at `public/CNAME` for `os.trijbsworld.nl`.
+
+To finish the deployment:
+
+1. In GitHub, open `Settings -> Pages`.
+2. Set `Source` to `GitHub Actions`.
+3. Set the custom domain to `os.trijbsworld.nl`.
+4. In DNS for `trijbsworld.nl`, add a `CNAME` record for `os` pointing to `trijbs.github.io`.
+5. After DNS resolves, enable `Enforce HTTPS` in GitHub Pages.
+
 ## Roadmap
 
 See:
