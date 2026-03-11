@@ -264,6 +264,7 @@ button {
 .window-controls,
 .taskbar,
 .taskbar-group,
+.taskbar-layouts,
 .taskbar-app,
 .sidebar-link,
 .explorer-row-main,
@@ -287,6 +288,7 @@ button {
 .window-controls button,
 .taskbar-button,
 .taskbar-app,
+.taskbar-layouts-panel button,
 .launcher-result,
 .sidebar-link,
 .explorer-row-actions button,
@@ -307,6 +309,7 @@ button {
 .window-controls button:hover,
 .taskbar-button:hover,
 .taskbar-app:hover,
+.taskbar-layouts-panel button:hover,
 .launcher-result:hover,
 .sidebar-link:hover,
 .explorer-row-actions button:hover,
@@ -320,6 +323,39 @@ button {
 .window-content,
 .app-pane {
   height: calc(100% - 49px);
+}
+
+.taskbar-layouts {
+  position: relative;
+}
+
+.taskbar-layouts-panel {
+  backdrop-filter: blur(18px);
+  background: rgba(10, 14, 22, 0.86);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  bottom: calc(100% + 12px);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  display: grid;
+  gap: 10px;
+  min-width: 260px;
+  padding: 12px;
+  position: absolute;
+  right: 0;
+}
+
+.taskbar-layouts-panel button {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+}
+
+.taskbar-layouts-panel button span {
+  color: var(--text-muted);
+  font-size: 0.84rem;
 }
 
 .app-pane {

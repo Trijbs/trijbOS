@@ -1,10 +1,12 @@
 import { Bell, LayoutGrid, Search, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { appDefinitions, pinnedApps } from "../apps";
+import { layoutPresets } from "../layout-presets";
 import { useSystemStore } from "../system-store";
 import { formatThemeModeLabel, getActiveDirectoryLabel } from "../taskbar-utils";
 
 export function Taskbar() {
+  const [layoutsOpen, setLayoutsOpen] = useState(false);
   const [time, setTime] = useState(() =>
     new Intl.DateTimeFormat([], {
       hour: "2-digit",
@@ -15,6 +17,7 @@ export function Taskbar() {
   const toggleLauncher = useSystemStore((state) => state.toggleLauncher);
   const toggleNotifications = useSystemStore((state) => state.toggleNotifications);
   const launchApp = useSystemStore((state) => state.launchApp);
+  const applyLayoutPreset = useSystemStore((state) => state.applyLayoutPreset);
   const toggleTaskbarWindow = useSystemStore((state) => state.toggleTaskbarWindow);
   const windows = useSystemStore((state) => state.windows);
   const notifications = useSystemStore((state) => state.notifications);
@@ -79,6 +82,35 @@ export function Taskbar() {
         })}
       </div>
       <div className="taskbar-group">
+        <div className="taskbar-layouts">
+          <button
+            aria-expanded={layoutsOpen}
+            aria-label="Open layouts"
+            className={`taskbar-button ${layoutsOpen ? "is-active" : ""}`}
+            onClick={() => setLayoutsOpen((current) => !current)}
+            type="button"
+          >
+            <LayoutGrid size={18} />
+          </button>
+          {layoutsOpen ? (
+            <div aria-label="Layouts" className="taskbar-layouts-panel">
+              {layoutPresets.map((preset) => (
+                <button
+                  aria-label={`Apply ${preset.name} from taskbar`}
+                  key={preset.id}
+                  onClick={() => {
+                    applyLayoutPreset(preset.id);
+                    setLayoutsOpen(false);
+                  }}
+                  type="button"
+                >
+                  <strong>{preset.name}</strong>
+                  <span>{preset.description}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
         <button
           aria-label={`Theme mode ${formatThemeModeLabel(theme.mode)}`}
           className="taskbar-status"
