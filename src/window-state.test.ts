@@ -111,6 +111,15 @@ describe("window state helpers", () => {
     expect(snappedRight.find((item) => item.id === "settings-1")?.snap).toBe("right");
   });
 
+  it("supports quarter snap state for a window", () => {
+    const next = snapWindowState(baseWindows, "notes-1", "top-left");
+    expect(next.find((item) => item.id === "notes-1")).toMatchObject({
+      minimized: false,
+      maximized: false,
+      snap: "top-left",
+    });
+  });
+
   it("clears snap state when bounds are updated manually", () => {
     const snapped = snapWindowState(baseWindows, "notes-1", "left");
     const next = updateWindowBoundsState(snapped, "notes-1", {

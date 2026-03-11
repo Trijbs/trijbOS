@@ -67,7 +67,7 @@ export function updateWindowBoundsState(windows: WindowState[], id: string, boun
 export function snapWindowState(
   windows: WindowState[],
   id: string,
-  snap: "left" | "right",
+  snap: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right",
 ) {
   return windows.map((item) =>
     item.id === id

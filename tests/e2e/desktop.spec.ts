@@ -194,6 +194,24 @@ test("dragging a window to the top edge maximizes it", async ({ page }) => {
   await expect(terminalWindow).toHaveAttribute("data-maximized", "true");
 });
 
+test("dragging a window into the top-left corner quarter tiles it", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await dragWindowTitlebar(page, "Terminal", { x: -420, y: -220 });
+  await expect(terminalWindow).toHaveAttribute("data-snap", "top-left");
+});
+
+test("dragging a window into the bottom-right corner quarter tiles it", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await dragWindowTitlebar(page, "Terminal", { x: 520, y: 520 });
+  await expect(terminalWindow).toHaveAttribute("data-snap", "bottom-right");
+});
+
 test("window focus cycles through titlebar controls with tab", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "terminal");

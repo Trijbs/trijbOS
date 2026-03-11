@@ -63,7 +63,7 @@ export type WindowState = {
   bounds: WindowBounds;
   minimized: boolean;
   maximized: boolean;
-  snap: "left" | "right" | null;
+  snap: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right" | null;
   zIndex: number;
 };
 

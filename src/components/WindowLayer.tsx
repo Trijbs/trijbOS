@@ -121,7 +121,9 @@ export function WindowLayer() {
                 data.x,
                 data.y,
                 windowState.bounds.width,
+                windowState.bounds.height,
                 window.innerWidth,
+                window.innerHeight,
               );
               setDragPreview(target ? { target, windowId: windowState.id } : null);
             }}
@@ -147,7 +149,9 @@ export function WindowLayer() {
                 data.x,
                 data.y,
                 windowState.bounds.width,
+                windowState.bounds.height,
                 window.innerWidth,
+                window.innerHeight,
               );
               setDragPreview(null);
               if (target === "maximize") {

@@ -1,7 +1,14 @@
 import type { WindowBounds } from "./types";
 
 export const SNAP_EDGE_THRESHOLD = 36;
-export type DragSnapTarget = "left" | "right" | "maximize";
+export type WindowSnap =
+  | "left"
+  | "right"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+export type DragSnapTarget = WindowSnap | "maximize";
 
 export function getMaximizedBounds(
   viewportWidth: number,
@@ -16,11 +23,29 @@ export function getMaximizedBounds(
 }
 
 export function getSnapBounds(
-  snap: "left" | "right",
+  snap: WindowSnap,
   viewportWidth: number,
   viewportHeight: number,
 ): WindowBounds {
   const halfWidth = (viewportWidth - 36) / 2;
+  const halfHeight = (viewportHeight - 100) / 2;
+
+  if (snap === "top-left") {
+    return { x: 12, y: 12, width: halfWidth, height: halfHeight };
+  }
+
+  if (snap === "top-right") {
+    return { x: halfWidth + 24, y: 12, width: halfWidth, height: halfHeight };
+  }
+
+  if (snap === "bottom-left") {
+    return { x: 12, y: halfHeight + 24, width: halfWidth, height: halfHeight };
+  }
+
+  if (snap === "bottom-right") {
+    return { x: halfWidth + 24, y: halfHeight + 24, width: halfWidth, height: halfHeight };
+  }
+
   return {
     x: snap === "left" ? 12 : halfWidth + 24,
     y: 12,
@@ -33,17 +58,40 @@ export function getDragSnapTarget(
   x: number,
   y: number,
   width: number,
+  height: number,
   viewportWidth: number,
+  viewportHeight: number,
 ): DragSnapTarget | null {
-  if (y <= SNAP_EDGE_THRESHOLD) {
+  const nearLeft = x <= SNAP_EDGE_THRESHOLD;
+  const nearRight = x + width >= viewportWidth - SNAP_EDGE_THRESHOLD;
+  const nearTop = y <= SNAP_EDGE_THRESHOLD;
+  const nearBottom = y + height >= viewportHeight - SNAP_EDGE_THRESHOLD - 64;
+
+  if (nearTop && nearLeft) {
+    return "top-left";
+  }
+
+  if (nearTop && nearRight) {
+    return "top-right";
+  }
+
+  if (nearBottom && nearLeft) {
+    return "bottom-left";
+  }
+
+  if (nearBottom && nearRight) {
+    return "bottom-right";
+  }
+
+  if (nearTop) {
     return "maximize";
   }
 
-  if (x <= SNAP_EDGE_THRESHOLD) {
+  if (nearLeft) {
     return "left";
   }
 
-  if (x + width >= viewportWidth - SNAP_EDGE_THRESHOLD) {
+  if (nearRight) {
     return "right";
   }
 
@@ -51,7 +99,7 @@ export function getDragSnapTarget(
 }
 
 export function getUnsnapBounds(
-  snap: "left" | "right",
+  snap: WindowSnap,
   bounds: WindowBounds,
   viewportWidth: number,
   viewportHeight: number,
@@ -61,7 +109,11 @@ export function getUnsnapBounds(
 
   return {
     ...bounds,
-    x: snap === "left" ? 24 : maxX,
-    y: Math.min(Math.max(bounds.y, 24), maxY),
+    x: snap.includes("left") ? 24 : snap.includes("right") ? maxX : bounds.x,
+    y: snap.startsWith("top")
+      ? 24
+      : snap.startsWith("bottom")
+        ? maxY
+        : Math.min(Math.max(bounds.y, 24), maxY),
   };
 }
