@@ -375,9 +375,34 @@ button {
 .media-meta,
 .media-library,
 .selection-bar,
-.selection-actions {
+.selection-actions,
+.layout-presets {
   display: flex;
   gap: 10px;
+}
+
+.layout-presets {
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.layout-presets button {
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 240px;
+  padding: 12px;
+  text-align: left;
+}
+
+.layout-presets button span {
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 .breadcrumbs {

@@ -131,6 +131,26 @@ describe("system store", () => {
     );
   });
 
+  it("applies a layout preset by arranging the target apps", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      windows: [],
+      selectedFileId: null,
+      selectedFileIds: [],
+    });
+
+    useSystemStore.getState().applyLayoutPreset("builder");
+
+    expect(useSystemStore.getState().windows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ appId: "file-explorer", snap: "left" }),
+        expect.objectContaining({ appId: "terminal", snap: "top-right" }),
+        expect.objectContaining({ appId: "notes", snap: "bottom-right" }),
+      ]),
+    );
+  });
+
   it("opens the launcher as an exclusive overlay", async () => {
     const { useSystemStore } = await import("./system-store");
 

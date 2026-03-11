@@ -166,6 +166,16 @@ test("snap assist places another open app into the remaining layout space", asyn
   await expect(notesWindow).toHaveAttribute("data-snap", "right");
 });
 
+test("settings can apply a reusable layout preset", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  await page.getByRole("button", { name: "Apply Builder Grid layout" }).click();
+  await expect(page.getByRole("dialog", { name: "File Explorer" })).toHaveAttribute("data-snap", "left");
+  await expect(page.getByRole("dialog", { name: "Terminal" })).toHaveAttribute("data-snap", "top-right");
+  await expect(page.getByRole("dialog", { name: "Notes" })).toHaveAttribute("data-snap", "bottom-right");
+});
+
 test("keyboard shortcuts snap the active window left and right", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "terminal");

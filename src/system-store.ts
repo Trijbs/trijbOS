@@ -3,6 +3,7 @@ import { appDefinitions } from "./apps";
 import { isProtectedFileNode } from "./filesystem-roots";
 import { isDesktopSnapshot, readBrowserFile } from "./import-utils";
 import { getFileTargetApp } from "./file-utils";
+import { applyLayoutPresetState, type LayoutPresetId } from "./layout-presets";
 import { toggleLauncherState, toggleNotificationsState } from "./shell-state";
 import {
   clearNotificationHistory,
@@ -83,6 +84,7 @@ type SystemState = {
   maximizeWindow: (id: string) => void;
   snapWindow: (id: string, snap: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right") => void;
   snapTopWindow: (snap: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right") => void;
+  applyLayoutPreset: (presetId: LayoutPresetId) => void;
   updateWindowBounds: (id: string, bounds: WindowBounds) => void;
   restoreWindow: (id: string) => void;
   closeTopWindow: () => void;
@@ -301,6 +303,13 @@ export const useSystemStore = create<SystemState>((set, get) => ({
       return;
     }
     get().snapWindow(topWindow.id, snap);
+  },
+  applyLayoutPreset(presetId) {
+    set((state) => {
+      const windows = applyLayoutPresetState(state.windows, presetId);
+      withPersistedWindows(windows);
+      return { windows };
+    });
   },
   updateWindowBounds(id, bounds) {
     set((state) => {

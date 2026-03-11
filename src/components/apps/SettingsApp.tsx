@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { layoutPresets } from "../../layout-presets";
 import { useSystemStore } from "../../system-store";
 import { accentOptions, wallpaperOptions } from "../../theme-options";
 
@@ -14,6 +15,7 @@ export function SettingsApp() {
   const resetWorkspace = useSystemStore((state) => state.resetWorkspace);
   const updateTheme = useSystemStore((state) => state.updateTheme);
   const pushNotification = useSystemStore((state) => state.pushNotification);
+  const applyLayoutPreset = useSystemStore((state) => state.applyLayoutPreset);
 
   return (
     <div className="app-pane settings-app">
@@ -64,6 +66,26 @@ export function SettingsApp() {
         <h3>Desktop</h3>
         <p>Launcher: `Ctrl/Cmd + K`</p>
         <p>Double-click the desktop to open File Explorer.</p>
+        <div className="layout-presets">
+          {layoutPresets.map((preset) => (
+            <button
+              aria-label={`Apply ${preset.name} layout`}
+              key={preset.id}
+              onClick={() => {
+                applyLayoutPreset(preset.id);
+                void pushNotification({
+                  title: "Layout applied",
+                  body: `${preset.name} arranged your open apps.`,
+                  tone: "success",
+                });
+              }}
+              type="button"
+            >
+              <strong>{preset.name}</strong>
+              <span>{preset.description}</span>
+            </button>
+          ))}
+        </div>
         <button
           aria-label="Export desktop snapshot"
           onClick={() => {
