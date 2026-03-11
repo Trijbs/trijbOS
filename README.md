@@ -8,7 +8,37 @@ A browser-based Web OS MVP focused on real shell usability, persistent state, mo
 - Zustand for shell and runtime state
 - Dexie/IndexedDB for persistence
 - `react-rnd` for draggable and resizable window primitives
-- Vitest for the first logic-test layer
+- Vitest for logic coverage
+- Playwright for browser validation across Chromium and WebKit
+
+## Current Status
+
+`trijbOS` is now in a validated MVP state.
+
+Implemented:
+
+- desktop shell with wallpaper, desktop shortcuts, taskbar, and tray/status chips
+- draggable, resizable, minimizable, maximizable windows
+- launcher/search, keyboard shortcuts, and notification center
+- settings with theme, accent, wallpaper, snapshot export/import, and workspace reset
+- file explorer with simulated storage, move flows, Trash, restore, and empty Trash
+- persistent theme, window session, workspace context, and file system state
+- core apps: File Explorer, Notes, Calculator, Media Viewer, Terminal mock, Settings
+
+Validation:
+
+- `npm test`
+- `npm run build`
+- Playwright matrix prepared and exercised across Chromium and WebKit
+
+## Feature Snapshot
+
+- Window manager: focus, z-order, drag, resize, minimize, maximize, restore
+- Shell: launcher, notifications, tray, keyboard commands, desktop shortcuts
+- Storage: IndexedDB-backed file system, protected roots, Trash lifecycle
+- Preferences: theme mode, accent, wallpaper, workspace/session persistence
+- Search: app and file search with ranked launcher results
+- Browser validation: Chromium green, WebKit green for core shell flows with one environment-specific snapshot download skip
 
 ## MVP Scope
 
@@ -27,6 +57,19 @@ npm install
 npm run dev
 ```
 
+For production-like local validation:
+
+```bash
+npm run build
+npm run preview
+```
+
+For browser validation:
+
+```bash
+npm run test:e2e
+```
+
 ## Roadmap
 
 See:
@@ -34,3 +77,4 @@ See:
 - `docs/product/mvp-scope.md`
 - `docs/product/roadmap-2-weeks.md`
 - `docs/architecture/system-overview.md`
+- `docs/qa/release-readiness.md`
