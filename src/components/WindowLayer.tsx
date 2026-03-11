@@ -22,10 +22,29 @@ function cycleWindowFocus(event: React.KeyboardEvent<HTMLDivElement>) {
   const first = focusables[0];
   const last = focusables[focusables.length - 1];
   const active = document.activeElement as HTMLElement | null;
+  const activeIndex = active ? focusables.indexOf(active) : -1;
 
   if (event.shiftKey && (active === first || active === event.currentTarget)) {
     event.preventDefault();
     last.focus();
+    return;
+  }
+
+  if (event.shiftKey && activeIndex > 0) {
+    event.preventDefault();
+    focusables[activeIndex - 1].focus();
+    return;
+  }
+
+  if (!event.shiftKey && (active === event.currentTarget || active === null)) {
+    event.preventDefault();
+    first.focus();
+    return;
+  }
+
+  if (!event.shiftKey && activeIndex >= 0 && activeIndex < focusables.length - 1) {
+    event.preventDefault();
+    focusables[activeIndex + 1].focus();
     return;
   }
 
