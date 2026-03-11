@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DesktopCanvas } from "./components/DesktopCanvas";
 import { DesktopShortcuts } from "./components/DesktopShortcuts";
 import { Launcher } from "./components/Launcher";
@@ -12,6 +12,7 @@ import { useThemeEffect } from "./use-theme-effect";
 export function App() {
   const hydrate = useSystemStore((state) => state.hydrate);
   const hydrated = useSystemStore((state) => state.hydrated);
+  const [bootError, setBootError] = useState<string | null>(null);
   const theme = useSystemStore((state) => state.theme);
   const launcherOpen = useSystemStore((state) => state.launcherOpen);
   const notificationsOpen = useSystemStore((state) => state.notificationsOpen);
@@ -24,7 +25,11 @@ export function App() {
   const openFile = useSystemStore((state) => state.openFile);
 
   useEffect(() => {
-    void hydrate();
+    void hydrate().catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : "Unknown startup error";
+      console.error("trijbOS hydration failed", error);
+      setBootError(message);
+    });
   }, [hydrate]);
 
   useThemeEffect(theme);
@@ -34,6 +39,17 @@ export function App() {
     snapTopWindow,
     toggleTopWindowMaximize,
   });
+
+  if (bootError) {
+    return (
+      <div className="boot-screen is-error">
+        <div className="boot-message">
+          <strong>trijbOS failed to start.</strong>
+          <span>{bootError}</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!hydrated) {
     return <div className="boot-screen">Booting trijbOS...</div>;

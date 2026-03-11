@@ -79,6 +79,25 @@ button {
   letter-spacing: 0.08em;
 }
 
+.boot-screen.is-error {
+  align-items: center;
+  color: #ffd5d5;
+  padding: 24px;
+}
+
+.boot-message {
+  display: grid;
+  gap: 12px;
+  max-width: 560px;
+  text-align: center;
+}
+
+.boot-message span {
+  color: rgba(255, 213, 213, 0.8);
+  letter-spacing: 0;
+  line-height: 1.5;
+}
+
 .wallpaper-layer {
   background: var(--wallpaper);
   inset: 0;
