@@ -447,6 +447,11 @@ button {
   gap: 8px;
 }
 
+.layout-preset-actions {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .layout-preset-actions button,
 .taskbar-layout-delete {
   background: rgba(255, 255, 255, 0.05);
@@ -454,6 +459,10 @@ button {
   border-radius: 12px;
   color: inherit;
   padding: 8px 10px;
+}
+
+.layout-preset-actions .inline-input {
+  min-width: 180px;
 }
 
 .taskbar-layout-entry {

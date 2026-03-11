@@ -195,8 +195,9 @@ test("settings can rename and delete a custom layout preset", async ({ page }) =
   await page.getByRole("button", { name: "Apply Focus Split layout" }).click();
   await page.getByRole("button", { name: "Save current layout as preset" }).click();
 
-  page.once("dialog", (dialog) => dialog.accept("Writing Rig"));
   await page.getByRole("button", { name: "Rename Custom Layout 1 layout" }).click();
+  await page.getByRole("textbox", { name: "Edit Custom Layout 1 layout name" }).fill("Writing Rig");
+  await page.getByRole("button", { name: "Save Custom Layout 1 layout name" }).click();
   await expect(page.getByRole("button", { name: "Apply Writing Rig layout" })).toBeVisible();
 
   await page.getByRole("button", { name: "Delete Writing Rig layout" }).click();

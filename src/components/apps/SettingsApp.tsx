@@ -1,10 +1,12 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { getAllLayoutPresets, isCustomLayoutPreset } from "../../layout-presets";
 import { useSystemStore } from "../../system-store";
 import { accentOptions, wallpaperOptions } from "../../theme-options";
 
 export function SettingsApp() {
   const importRef = useRef<HTMLInputElement | null>(null);
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
+  const [editingPresetName, setEditingPresetName] = useState("");
   const theme = useSystemStore((state) => state.theme);
   const files = useSystemStore((state) => state.files);
   const windows = useSystemStore((state) => state.windows);
@@ -108,19 +110,53 @@ export function SettingsApp() {
               </button>
               {isCustomLayoutPreset(preset.id) ? (
                 <div className="layout-preset-actions">
-                  <button
-                    aria-label={`Rename ${preset.name} layout`}
-                    onClick={() => {
-                      const nextName = window.prompt("Rename layout preset", preset.name);
-                      if (!nextName) {
-                        return;
-                      }
-                      void renameLayoutPreset(preset.id, nextName);
-                    }}
-                    type="button"
-                  >
-                    Rename
-                  </button>
+                  {editingPresetId === preset.id ? (
+                    <>
+                      <input
+                        aria-label={`Edit ${preset.name} layout name`}
+                        autoFocus
+                        className="inline-input"
+                        onChange={(event) => setEditingPresetName(event.target.value)}
+                        value={editingPresetName}
+                      />
+                      <button
+                        aria-label={`Save ${preset.name} layout name`}
+                        onClick={() => {
+                          void renameLayoutPreset(preset.id, editingPresetName).then((ok) => {
+                            if (!ok) {
+                              return;
+                            }
+                            setEditingPresetId(null);
+                            setEditingPresetName("");
+                          });
+                        }}
+                        type="button"
+                      >
+                        Save
+                      </button>
+                      <button
+                        aria-label={`Cancel renaming ${preset.name} layout`}
+                        onClick={() => {
+                          setEditingPresetId(null);
+                          setEditingPresetName("");
+                        }}
+                        type="button"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      aria-label={`Rename ${preset.name} layout`}
+                      onClick={() => {
+                        setEditingPresetId(preset.id);
+                        setEditingPresetName(preset.name);
+                      }}
+                      type="button"
+                    >
+                      Rename
+                    </button>
+                  )}
                   <button
                     aria-label={`Delete ${preset.name} layout`}
                     onClick={() => void deleteLayoutPreset(preset.id)}
