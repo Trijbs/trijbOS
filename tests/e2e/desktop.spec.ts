@@ -15,6 +15,28 @@ function commandChord(key: string) {
   return `${process.platform === "darwin" ? "Meta" : "Control"}+${key}`;
 }
 
+async function dragWindowTitlebar(
+  page: Page,
+  title: string,
+  moveBy: { x: number; y: number },
+) {
+  const titlebar = page
+    .getByRole("dialog", { name: title })
+    .locator(".window-titlebar");
+  const box = await titlebar.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) {
+    return;
+  }
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + moveBy.x, box.y + box.height / 2 + moveBy.y, {
+    steps: 12,
+  });
+  await page.mouse.up();
+}
+
 test("desktop boots and launcher opens", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("Booting trijbOS...")).not.toBeVisible();
@@ -114,6 +136,55 @@ test("system shortcut toggles maximize on the active window", async ({ page }) =
   await expect(terminalWindow).toBeVisible();
 });
 
+test("window snap buttons toggle left and right snapped states", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await terminalWindow.getByRole("button", { name: "Snap Terminal left" }).click();
+  await expect(terminalWindow).toHaveAttribute("data-snap", "left");
+
+  await terminalWindow.getByRole("button", { name: "Snap Terminal left" }).click();
+  await expect(terminalWindow).not.toHaveAttribute("data-snap", "left");
+
+  await terminalWindow.getByRole("button", { name: "Snap Terminal right" }).click();
+  await expect(terminalWindow).toHaveAttribute("data-snap", "right");
+});
+
+test("keyboard shortcuts snap the active window left and right", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await page.keyboard.press(`${commandChord("Alt+ArrowLeft")}`);
+  await expect(terminalWindow).toHaveAttribute("data-snap", "left");
+
+  await page.keyboard.press(`${commandChord("Alt+ArrowRight")}`);
+  await expect(terminalWindow).toHaveAttribute("data-snap", "right");
+});
+
+test("dragging a snapped window releases it back to floating mode", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await terminalWindow.getByRole("button", { name: "Snap Terminal left" }).click();
+  await expect(terminalWindow).toHaveAttribute("data-snap", "left");
+
+  await dragWindowTitlebar(page, "Terminal", { x: 340, y: 60 });
+  await expect(terminalWindow).not.toHaveAttribute("data-snap", "left");
+  await expect(terminalWindow).not.toHaveAttribute("data-snap", "right");
+});
+
+test("dragging a window to the screen edge snaps it", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  await dragWindowTitlebar(page, "Terminal", { x: -420, y: 0 });
+  await expect(terminalWindow).toHaveAttribute("data-snap", "left");
+});
+
 test("window focus cycles through titlebar controls with tab", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "terminal");
@@ -121,13 +192,17 @@ test("window focus cycles through titlebar controls with tab", async ({ page }) 
   const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
   await terminalWindow.focus();
   await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Snap Terminal left" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Snap Terminal right" })).toBeFocused();
+  await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Minimize Terminal" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Maximize Terminal" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Close Terminal" })).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("button", { name: "Minimize Terminal" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Snap Terminal left" })).toBeFocused();
 });
 
 test("snapshot export and import restores theme state", async ({ page, browserName }, testInfo) => {
@@ -201,7 +276,7 @@ test("trash flow restores a deleted file", async ({ page }) => {
   await welcomeRow.getByRole("button", { name: "Move Welcome Note.md to trash" }).click();
   await expect(welcomeRow).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Trash" }).click();
+  await page.locator(".sidebar-link").filter({ hasText: "Trash" }).click();
   const trashRow = page.locator(".explorer-row").filter({ hasText: "Welcome Note.md" });
   await expect(trashRow).toBeVisible();
   await trashRow.getByRole("button", { name: /Restore/i }).click();

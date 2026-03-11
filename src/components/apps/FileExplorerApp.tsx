@@ -216,7 +216,11 @@ export function FileExplorerApp() {
                     </button>
                   )}
                   {isInTrash ? (
-                    <button onClick={() => void restoreFiles([entry.id])} type="button">
+                    <button
+                      aria-label={`Restore ${entry.name}`}
+                      onClick={() => void restoreFiles([entry.id])}
+                      type="button"
+                    >
                       <RotateCcw size={14} />
                     </button>
                   ) : null}

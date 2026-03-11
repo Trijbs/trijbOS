@@ -99,6 +99,7 @@ export function WindowLayer() {
         return (
           <Rnd
             bounds="parent"
+            cancel=".window-controls, .window-controls *"
             className={`window-frame ${topWindowId === windowState.id ? "is-focused" : ""}`}
             disableDragging={windowState.maximized}
             enableResizing={windowState.maximized ? false : app.resizable ?? true}
