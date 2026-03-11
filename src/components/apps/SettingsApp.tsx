@@ -22,6 +22,7 @@ export function SettingsApp() {
   const saveCurrentLayoutPreset = useSystemStore((state) => state.saveCurrentLayoutPreset);
   const renameLayoutPreset = useSystemStore((state) => state.renameLayoutPreset);
   const deleteLayoutPreset = useSystemStore((state) => state.deleteLayoutPreset);
+  const togglePinLayoutPreset = useSystemStore((state) => state.togglePinLayoutPreset);
 
   return (
     <div className="app-pane settings-app">
@@ -146,16 +147,25 @@ export function SettingsApp() {
                       </button>
                     </>
                   ) : (
-                    <button
-                      aria-label={`Rename ${preset.name} layout`}
-                      onClick={() => {
-                        setEditingPresetId(preset.id);
-                        setEditingPresetName(preset.name);
-                      }}
-                      type="button"
-                    >
-                      Rename
-                    </button>
+                    <>
+                      <button
+                        aria-label={`${preset.pinned ? "Unpin" : "Pin"} ${preset.name} layout`}
+                        onClick={() => void togglePinLayoutPreset(preset.id)}
+                        type="button"
+                      >
+                        {preset.pinned ? "Unpin" : "Pin"}
+                      </button>
+                      <button
+                        aria-label={`Rename ${preset.name} layout`}
+                        onClick={() => {
+                          setEditingPresetId(preset.id);
+                          setEditingPresetName(preset.name);
+                        }}
+                        type="button"
+                      >
+                        Rename
+                      </button>
+                    </>
                   )}
                   <button
                     aria-label={`Delete ${preset.name} layout`}

@@ -62,6 +62,7 @@ describe("layout presets", () => {
 
     expect(preset).toMatchObject({
       name: "Custom Layout 1",
+      pinned: false,
       windows: [
         { appId: "notes", snap: "left" },
         { appId: "terminal", snap: "right" },
@@ -76,9 +77,31 @@ describe("layout presets", () => {
           id: "custom-1",
           name: "Custom Layout 1",
           description: "2 arranged apps.",
+          pinned: false,
           windows: [{ appId: "notes", snap: "left" }],
         },
       ]),
     ).toHaveLength(builtinLayoutPresets.length + 1);
+  });
+
+  it("sorts pinned custom presets ahead of other layouts", () => {
+    const presets = getAllLayoutPresets([
+      {
+        id: "custom-2",
+        name: "Writing",
+        description: "2 arranged apps.",
+        pinned: false,
+        windows: [{ appId: "notes", snap: "left" }],
+      },
+      {
+        id: "custom-1",
+        name: "Build",
+        description: "2 arranged apps.",
+        pinned: true,
+        windows: [{ appId: "terminal", snap: "right" }],
+      },
+    ]);
+
+    expect(presets[0]?.id).toBe("custom-1");
   });
 });

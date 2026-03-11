@@ -229,6 +229,27 @@ describe("system store", () => {
     expect(useSystemStore.getState().layoutPresets).toHaveLength(0);
   });
 
+  it("toggles pinning on a custom layout preset", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      layoutPresets: [
+        {
+          id: "custom-1",
+          name: "Custom Layout 1",
+          description: "2 arranged apps.",
+          pinned: false,
+          windows: [{ appId: "notes", snap: "left" }],
+        },
+      ],
+    });
+
+    const pinned = await useSystemStore.getState().togglePinLayoutPreset("custom-1");
+
+    expect(pinned).toBe(true);
+    expect(useSystemStore.getState().layoutPresets[0]?.pinned).toBe(true);
+  });
+
   it("opens the launcher as an exclusive overlay", async () => {
     const { useSystemStore } = await import("./system-store");
 

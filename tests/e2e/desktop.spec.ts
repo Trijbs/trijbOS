@@ -204,6 +204,18 @@ test("settings can rename and delete a custom layout preset", async ({ page }) =
   await expect(page.getByRole("button", { name: "Apply Writing Rig layout" })).toHaveCount(0);
 });
 
+test("pinned custom layouts rise to the top of layout lists", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  await page.getByRole("button", { name: "Apply Focus Split layout" }).click();
+  await page.getByRole("button", { name: "Save current layout as preset" }).click();
+  await page.getByRole("button", { name: "Pin Custom Layout 1 layout" }).click();
+
+  const layoutButtons = page.locator(".layout-presets").getByRole("button", { name: /Apply .* layout/ });
+  await expect(layoutButtons.first()).toHaveAccessibleName("Apply Custom Layout 1 layout");
+});
+
 test("launcher can apply a reusable layout preset", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "builder");

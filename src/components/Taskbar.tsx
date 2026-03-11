@@ -21,6 +21,7 @@ export function Taskbar() {
   const userLayoutPresets = useSystemStore((state) => state.layoutPresets);
   const saveCurrentLayoutPreset = useSystemStore((state) => state.saveCurrentLayoutPreset);
   const deleteLayoutPreset = useSystemStore((state) => state.deleteLayoutPreset);
+  const togglePinLayoutPreset = useSystemStore((state) => state.togglePinLayoutPreset);
   const toggleTaskbarWindow = useSystemStore((state) => state.toggleTaskbarWindow);
   const windows = useSystemStore((state) => state.windows);
   const notifications = useSystemStore((state) => state.notifications);
@@ -111,14 +112,24 @@ export function Taskbar() {
                     <span>{preset.description}</span>
                   </button>
                   {isCustomLayoutPreset(preset.id) ? (
-                    <button
-                      aria-label={`Delete ${preset.name} from taskbar`}
-                      className="taskbar-layout-delete"
-                      onClick={() => void deleteLayoutPreset(preset.id)}
-                      type="button"
-                    >
-                      Remove
-                    </button>
+                    <div className="taskbar-layout-meta">
+                      <button
+                        aria-label={`${preset.pinned ? "Unpin" : "Pin"} ${preset.name} from taskbar`}
+                        className="taskbar-layout-delete"
+                        onClick={() => void togglePinLayoutPreset(preset.id)}
+                        type="button"
+                      >
+                        {preset.pinned ? "Unpin" : "Pin"}
+                      </button>
+                      <button
+                        aria-label={`Delete ${preset.name} from taskbar`}
+                        className="taskbar-layout-delete"
+                        onClick={() => void deleteLayoutPreset(preset.id)}
+                        type="button"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   ) : null}
                 </div>
               ))}

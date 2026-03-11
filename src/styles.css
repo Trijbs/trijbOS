@@ -442,7 +442,8 @@ button {
 }
 
 .layout-preset-actions,
-.taskbar-layout-entry {
+.taskbar-layout-entry,
+.taskbar-layout-meta {
   display: flex;
   gap: 8px;
 }
@@ -471,6 +472,10 @@ button {
 
 .taskbar-layout-entry > button:first-child {
   flex: 1;
+}
+
+.taskbar-layout-meta {
+  flex-direction: column;
 }
 
 .layout-presets button span {

@@ -50,6 +50,7 @@ export type LayoutPreset = {
   description: string;
   id: string;
   name: string;
+  pinned?: boolean;
   windows: LayoutPresetWindow[];
 };
 

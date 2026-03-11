@@ -99,6 +99,7 @@ type SystemState = {
   saveCurrentLayoutPreset: () => Promise<boolean>;
   renameLayoutPreset: (presetId: LayoutPresetId, name: string) => Promise<boolean>;
   deleteLayoutPreset: (presetId: LayoutPresetId) => Promise<boolean>;
+  togglePinLayoutPreset: (presetId: LayoutPresetId) => Promise<boolean>;
   updateWindowBounds: (id: string, bounds: WindowBounds) => void;
   restoreWindow: (id: string) => void;
   closeTopWindow: () => void;
@@ -364,6 +365,18 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     }
 
     const nextPresets = get().layoutPresets.filter((preset) => preset.id !== presetId);
+    set({ layoutPresets: nextPresets });
+    await enqueuePersistence(() => saveLayoutPresets(nextPresets));
+    return true;
+  },
+  async togglePinLayoutPreset(presetId) {
+    if (!presetId.startsWith("custom-")) {
+      return false;
+    }
+
+    const nextPresets = get().layoutPresets.map((preset) =>
+      preset.id === presetId ? { ...preset, pinned: !preset.pinned } : preset,
+    );
     set({ layoutPresets: nextPresets });
     await enqueuePersistence(() => saveLayoutPresets(nextPresets));
     return true;

@@ -41,7 +41,14 @@ export const builtinLayoutPresets: LayoutPreset[] = [
 ];
 
 export function getAllLayoutPresets(userPresets: LayoutPreset[] = []) {
-  return [...builtinLayoutPresets, ...userPresets];
+  const sortedUserPresets = [...userPresets].sort((left, right) => {
+    if (Boolean(left.pinned) !== Boolean(right.pinned)) {
+      return left.pinned ? -1 : 1;
+    }
+    return left.name.localeCompare(right.name);
+  });
+
+  return [...sortedUserPresets, ...builtinLayoutPresets];
 }
 
 export function createLayoutPresetFromWindows(
@@ -62,6 +69,7 @@ export function createLayoutPresetFromWindows(
     id: `custom-${crypto.randomUUID()}`,
     name: `Custom Layout ${nextIndex}`,
     description: `${relevantWindows.length} arranged app${relevantWindows.length === 1 ? "" : "s"}.`,
+    pinned: false,
     windows: relevantWindows.map((item) => ({
       appId: item.appId,
       maximized: item.maximized,
