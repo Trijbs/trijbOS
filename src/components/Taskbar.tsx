@@ -2,6 +2,7 @@ import { Bell, LayoutGrid, Search, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { appDefinitions, pinnedApps } from "../apps";
 import { useSystemStore } from "../system-store";
+import { formatThemeModeLabel, getActiveDirectoryLabel } from "../taskbar-utils";
 
 export function Taskbar() {
   const [time, setTime] = useState(() =>
@@ -17,7 +18,13 @@ export function Taskbar() {
   const toggleTaskbarWindow = useSystemStore((state) => state.toggleTaskbarWindow);
   const windows = useSystemStore((state) => state.windows);
   const notifications = useSystemStore((state) => state.notifications);
+  const theme = useSystemStore((state) => state.theme);
+  const files = useSystemStore((state) => state.files);
+  const activeDirectoryId = useSystemStore((state) => state.activeDirectoryId);
+  const setActiveDirectory = useSystemStore((state) => state.setActiveDirectory);
   const unreadCount = notifications.filter((item) => !item.readAt).length;
+  const trashCount = files.filter((item) => item.parentId === "trash").length;
+  const activeDirectoryLabel = getActiveDirectoryLabel(files, activeDirectoryId);
 
   const runningIds = new Set(windows.map((item) => item.appId));
   useEffect(() => {
@@ -72,6 +79,40 @@ export function Taskbar() {
         })}
       </div>
       <div className="taskbar-group">
+        <button
+          aria-label={`Theme mode ${formatThemeModeLabel(theme.mode)}`}
+          className="taskbar-status"
+          onClick={() => launchApp("settings")}
+          type="button"
+        >
+          <span className="taskbar-status-label">Theme</span>
+          <span>{formatThemeModeLabel(theme.mode)}</span>
+        </button>
+        <button
+          aria-label={`Current location ${activeDirectoryLabel}`}
+          className="taskbar-status"
+          onClick={() => {
+            launchApp("file-explorer");
+          }}
+          type="button"
+        >
+          <span className="taskbar-status-label">Location</span>
+          <span>{activeDirectoryLabel}</span>
+        </button>
+        {trashCount > 0 ? (
+          <button
+            aria-label={`Trash contains ${trashCount} item${trashCount === 1 ? "" : "s"}`}
+            className="taskbar-status"
+            onClick={() => {
+              setActiveDirectory("trash");
+              launchApp("file-explorer");
+            }}
+            type="button"
+          >
+            <span className="taskbar-status-label">Trash</span>
+            <span>{trashCount}</span>
+          </button>
+        ) : null}
         <button aria-label="Open settings" className="taskbar-button" onClick={() => launchApp("settings")} type="button">
           <Settings2 size={18} />
         </button>

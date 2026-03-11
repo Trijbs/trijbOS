@@ -529,7 +529,8 @@ button {
 }
 
 .taskbar-button,
-.taskbar-app {
+.taskbar-app,
+.taskbar-status {
   gap: 8px;
   min-height: 42px;
   padding: 0 14px;
@@ -568,6 +569,26 @@ button {
   color: var(--text-muted);
   min-width: 56px;
   text-align: right;
+}
+
+.taskbar-status {
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 82px;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.taskbar-status-label {
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .launcher-panel,
@@ -666,6 +687,10 @@ button {
 
 @media (max-width: 900px) {
   .taskbar-app span {
+    display: none;
+  }
+
+  .taskbar-status {
     display: none;
   }
 
