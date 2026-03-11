@@ -6,6 +6,7 @@ const storageMocks = vi.hoisted(() => ({
   deleteFile: vi.fn(async () => undefined),
   ensureStorageReady: vi.fn(async () => undefined),
   loadFiles: vi.fn(async () => []),
+  loadLayoutPresets: vi.fn(async () => []),
   loadNotifications: vi.fn(async () => []),
   loadSession: vi.fn(async () => []),
   loadThemePreference: vi.fn(async () => ({
@@ -16,6 +17,7 @@ const storageMocks = vi.hoisted(() => ({
   resetStorage: vi.fn(async () => undefined),
   restoreSnapshot: vi.fn(async () => undefined),
   saveFile: vi.fn(async () => undefined),
+  saveLayoutPresets: vi.fn(async () => undefined),
   saveNotification: vi.fn(async () => undefined),
   saveSession: vi.fn(async () => undefined),
   saveThemePreference: vi.fn(async () => undefined),
@@ -149,6 +151,42 @@ describe("system store", () => {
         expect.objectContaining({ appId: "notes", snap: "bottom-right" }),
       ]),
     );
+  });
+
+  it("saves the current tiled layout as a custom preset", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      layoutPresets: [],
+      windows: [
+        {
+          id: "notes-1",
+          appId: "notes",
+          title: "Notes",
+          bounds: { x: 10, y: 10, width: 560, height: 460 },
+          minimized: false,
+          maximized: false,
+          snap: "left",
+          zIndex: 1,
+        },
+        {
+          id: "terminal-1",
+          appId: "terminal",
+          title: "Terminal",
+          bounds: { x: 20, y: 20, width: 640, height: 420 },
+          minimized: false,
+          maximized: false,
+          snap: "right",
+          zIndex: 2,
+        },
+      ],
+    });
+
+    const saved = await useSystemStore.getState().saveCurrentLayoutPreset();
+
+    expect(saved).toBe(true);
+    expect(useSystemStore.getState().layoutPresets).toHaveLength(1);
+    expect(storageMocks.saveLayoutPresets).toHaveBeenCalledTimes(1);
   });
 
   it("opens the launcher as an exclusive overlay", async () => {

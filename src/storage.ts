@@ -3,6 +3,7 @@ import { filesystemRoots } from "./filesystem-roots";
 import type {
   DesktopSnapshot,
   FileNode,
+  LayoutPreset,
   NotificationItem,
   ThemePreference,
   WindowState,
@@ -160,6 +161,24 @@ export async function saveWorkspaceState(workspace: WorkspaceState) {
   await db.preferences.put({ key: "workspace", value: JSON.stringify(workspace) });
 }
 
+export async function loadLayoutPresets(): Promise<LayoutPreset[]> {
+  const record = await db.preferences.get("layoutPresets");
+  if (!record) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(record.value) as LayoutPreset[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function saveLayoutPresets(presets: LayoutPreset[]) {
+  await db.preferences.put({ key: "layoutPresets", value: JSON.stringify(presets) });
+}
+
 export async function loadFiles() {
   return db.files.toArray();
 }
@@ -215,6 +234,7 @@ export async function replaceNotifications(notifications: NotificationItem[]) {
 
 export async function restoreSnapshot(snapshot: DesktopSnapshot) {
   await replaceFiles(snapshot.files);
+  await saveLayoutPresets(snapshot.layoutPresets ?? []);
   await saveThemePreference(snapshot.theme);
   await saveWorkspaceState(snapshot.workspace ?? defaultWorkspaceState);
   await replaceNotifications(snapshot.notifications);

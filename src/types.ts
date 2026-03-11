@@ -40,9 +40,23 @@ export type WorkspaceState = {
   selectedFileIds: string[];
 };
 
+export type LayoutPresetWindow = {
+  appId: AppId;
+  maximized?: boolean;
+  snap?: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
+};
+
+export type LayoutPreset = {
+  description: string;
+  id: string;
+  name: string;
+  windows: LayoutPresetWindow[];
+};
+
 export type DesktopSnapshot = {
   exportedAt: string;
   files: FileNode[];
+  layoutPresets?: LayoutPreset[];
   notifications: NotificationItem[];
   theme: ThemePreference;
   workspace?: WorkspaceState;

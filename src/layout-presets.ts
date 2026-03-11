@@ -3,22 +3,22 @@ import { getHighestZIndex, makeWindow } from "./window-state";
 import type { AppId, WindowState } from "./types";
 import type { WindowSnap } from "./window-snap";
 
-export type LayoutPresetId = "focus" | "builder";
+export type LayoutPresetId = string;
 
-type LayoutPresetWindow = {
+export type LayoutPresetWindow = {
   appId: AppId;
   maximized?: boolean;
   snap?: WindowSnap;
 };
 
-type LayoutPreset = {
+export type LayoutPreset = {
   description: string;
   id: LayoutPresetId;
   name: string;
   windows: LayoutPresetWindow[];
 };
 
-export const layoutPresets: LayoutPreset[] = [
+export const builtinLayoutPresets: LayoutPreset[] = [
   {
     id: "focus",
     name: "Focus Split",
@@ -39,6 +39,36 @@ export const layoutPresets: LayoutPreset[] = [
     ],
   },
 ];
+
+export function getAllLayoutPresets(userPresets: LayoutPreset[] = []) {
+  return [...builtinLayoutPresets, ...userPresets];
+}
+
+export function createLayoutPresetFromWindows(
+  windows: WindowState[],
+  existingPresets: LayoutPreset[],
+): LayoutPreset | null {
+  const relevantWindows = windows
+    .filter((item) => !item.minimized && (item.maximized || item.snap))
+    .sort((left, right) => left.zIndex - right.zIndex);
+
+  if (relevantWindows.length === 0) {
+    return null;
+  }
+
+  const nextIndex = existingPresets.filter((item) => item.id.startsWith("custom-")).length + 1;
+
+  return {
+    id: `custom-${crypto.randomUUID()}`,
+    name: `Custom Layout ${nextIndex}`,
+    description: `${relevantWindows.length} arranged app${relevantWindows.length === 1 ? "" : "s"}.`,
+    windows: relevantWindows.map((item) => ({
+      appId: item.appId,
+      maximized: item.maximized,
+      snap: item.maximized ? undefined : item.snap ?? undefined,
+    })),
+  };
+}
 
 function getOrCreateWindowForApp(
   windows: WindowState[],
@@ -61,9 +91,10 @@ function getOrCreateWindowForApp(
 
 export function applyLayoutPresetState(
   currentWindows: WindowState[],
+  presets: LayoutPreset[],
   presetId: LayoutPresetId,
 ): WindowState[] {
-  const preset = layoutPresets.find((item) => item.id === presetId);
+  const preset = presets.find((item) => item.id === presetId);
   if (!preset) {
     return currentWindows;
   }

@@ -3,7 +3,13 @@ import { appDefinitions } from "./apps";
 import { isProtectedFileNode } from "./filesystem-roots";
 import { isDesktopSnapshot, readBrowserFile } from "./import-utils";
 import { getFileTargetApp } from "./file-utils";
-import { applyLayoutPresetState, type LayoutPresetId } from "./layout-presets";
+import {
+  applyLayoutPresetState,
+  builtinLayoutPresets,
+  createLayoutPresetFromWindows,
+  getAllLayoutPresets,
+  type LayoutPresetId,
+} from "./layout-presets";
 import { toggleLauncherState, toggleNotificationsState } from "./shell-state";
 import {
   clearNotificationHistory,
@@ -11,6 +17,7 @@ import {
   deleteFile,
   ensureStorageReady,
   loadFiles,
+  loadLayoutPresets,
   loadNotifications,
   loadSession,
   loadThemePreference,
@@ -18,6 +25,7 @@ import {
   resetStorage,
   restoreSnapshot,
   saveFile,
+  saveLayoutPresets,
   saveNotification,
   saveSession,
   saveThemePreference,
@@ -36,6 +44,7 @@ import {
 import type {
   AppId,
   FileNode,
+  LayoutPreset,
   LaunchContext,
   NotificationItem,
   ThemePreference,
@@ -46,6 +55,7 @@ import type {
 
 type HydratedPayload = {
   files: FileNode[];
+  layoutPresets: LayoutPreset[];
   notifications: NotificationItem[];
   theme: ThemePreference;
   workspace: WorkspaceState;
@@ -68,6 +78,7 @@ type SystemState = {
   selectedFileIds: string[];
   theme: ThemePreference;
   files: FileNode[];
+  layoutPresets: LayoutPreset[];
   windows: WindowState[];
   notifications: NotificationItem[];
   hydrate: () => Promise<void>;
@@ -85,6 +96,7 @@ type SystemState = {
   snapWindow: (id: string, snap: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right") => void;
   snapTopWindow: (snap: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right") => void;
   applyLayoutPreset: (presetId: LayoutPresetId) => void;
+  saveCurrentLayoutPreset: () => Promise<boolean>;
   updateWindowBounds: (id: string, bounds: WindowBounds) => void;
   restoreWindow: (id: string) => void;
   closeTopWindow: () => void;
@@ -140,6 +152,7 @@ function normalizeHydratedState(payload: HydratedPayload) {
     activeDirectoryId: payload.workspace.activeDirectoryId ?? "desktop",
     files: payload.files,
     hydrated: true,
+    layoutPresets: payload.layoutPresets,
     launcherOpen: false,
     notifications: payload.notifications,
     notificationsOpen: false,
@@ -178,19 +191,22 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   selectedFileIds: [],
   theme: defaultTheme,
   files: [],
+  layoutPresets: [],
   windows: [],
   notifications: [],
   async hydrate() {
     await ensureStorageReady();
-    const [workspace, files, notifications, theme, windows] = await Promise.all([
+    const [workspace, files, layoutPresets, notifications, theme, windows] = await Promise.all([
       loadWorkspaceState(),
       loadFiles(),
+      loadLayoutPresets(),
       loadNotifications(),
       loadThemePreference(),
       loadSession(),
     ]);
     set(normalizeHydratedState({
       files,
+      layoutPresets,
       notifications,
       theme,
       windows,
@@ -306,10 +322,26 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   },
   applyLayoutPreset(presetId) {
     set((state) => {
-      const windows = applyLayoutPresetState(state.windows, presetId);
+      const windows = applyLayoutPresetState(
+        state.windows,
+        getAllLayoutPresets(state.layoutPresets),
+        presetId,
+      );
       withPersistedWindows(windows);
       return { windows };
     });
+  },
+  async saveCurrentLayoutPreset() {
+    const { layoutPresets, windows } = get();
+    const nextPreset = createLayoutPresetFromWindows(windows, layoutPresets);
+    if (!nextPreset) {
+      return false;
+    }
+
+    const nextPresets = [...layoutPresets, nextPreset];
+    set({ layoutPresets: nextPresets });
+    await enqueuePersistence(() => saveLayoutPresets(nextPresets));
+    return true;
   },
   updateWindowBounds(id, bounds) {
     set((state) => {
@@ -525,6 +557,7 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     await enqueuePersistence(() => restoreSnapshot(parsed));
     set(normalizeHydratedState({
       files: parsed.files,
+      layoutPresets: parsed.layoutPresets ?? [],
       notifications: parsed.notifications,
       theme: parsed.theme,
       workspace: parsed.workspace ?? { activeDirectoryId: "desktop", selectedFileIds: [] },
@@ -534,14 +567,22 @@ export const useSystemStore = create<SystemState>((set, get) => ({
   },
   async resetWorkspace() {
     await enqueuePersistence(() => resetStorage());
-    const [workspace, files, notifications, theme, windows] = await Promise.all([
+    const [layoutPresets, nextWorkspace, nextFiles, nextNotifications, nextTheme, nextWindows] = await Promise.all([
+      loadLayoutPresets(),
       loadWorkspaceState(),
       loadFiles(),
       loadNotifications(),
       loadThemePreference(),
       loadSession(),
     ]);
-    set(normalizeHydratedState({ files, notifications, theme, windows, workspace }));
+    set(normalizeHydratedState({
+      files: nextFiles,
+      layoutPresets,
+      notifications: nextNotifications,
+      theme: nextTheme,
+      windows: nextWindows,
+      workspace: nextWorkspace,
+    }));
   },
   async pushNotification(item) {
     const next: NotificationItem = {

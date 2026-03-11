@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getAllLayoutPresets } from "../layout-presets";
 import { buildLauncherResults, type LauncherResult } from "../launcher-utils";
 import { useSystemStore } from "../system-store";
 
@@ -7,12 +8,13 @@ export function Launcher() {
   const [activeIndex, setActiveIndex] = useState(0);
   const launchApp = useSystemStore((state) => state.launchApp);
   const files = useSystemStore((state) => state.files);
+  const layoutPresets = useSystemStore((state) => state.layoutPresets);
   const openFile = useSystemStore((state) => state.openFile);
   const applyLayoutPreset = useSystemStore((state) => state.applyLayoutPreset);
 
   const results = useMemo<LauncherResult[]>(() => {
-    return buildLauncherResults(files, query);
-  }, [files, query]);
+    return buildLauncherResults(files, query, getAllLayoutPresets(layoutPresets));
+  }, [files, layoutPresets, query]);
 
   useEffect(() => {
     setActiveIndex(0);

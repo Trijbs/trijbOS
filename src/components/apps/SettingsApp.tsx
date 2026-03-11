@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { layoutPresets } from "../../layout-presets";
+import { getAllLayoutPresets } from "../../layout-presets";
 import { useSystemStore } from "../../system-store";
 import { accentOptions, wallpaperOptions } from "../../theme-options";
 
@@ -8,6 +8,7 @@ export function SettingsApp() {
   const theme = useSystemStore((state) => state.theme);
   const files = useSystemStore((state) => state.files);
   const windows = useSystemStore((state) => state.windows);
+  const userLayoutPresets = useSystemStore((state) => state.layoutPresets);
   const notifications = useSystemStore((state) => state.notifications);
   const activeDirectoryId = useSystemStore((state) => state.activeDirectoryId);
   const selectedFileIds = useSystemStore((state) => state.selectedFileIds);
@@ -16,6 +17,7 @@ export function SettingsApp() {
   const updateTheme = useSystemStore((state) => state.updateTheme);
   const pushNotification = useSystemStore((state) => state.pushNotification);
   const applyLayoutPreset = useSystemStore((state) => state.applyLayoutPreset);
+  const saveCurrentLayoutPreset = useSystemStore((state) => state.saveCurrentLayoutPreset);
 
   return (
     <div className="app-pane settings-app">
@@ -67,7 +69,25 @@ export function SettingsApp() {
         <p>Launcher: `Ctrl/Cmd + K`</p>
         <p>Double-click the desktop to open File Explorer.</p>
         <div className="layout-presets">
-          {layoutPresets.map((preset) => (
+          <button
+            aria-label="Save current layout as preset"
+            onClick={() =>
+              void saveCurrentLayoutPreset().then((ok) =>
+                pushNotification({
+                  title: ok ? "Layout saved" : "No layout to save",
+                  body: ok
+                    ? "Current window arrangement is now available in layouts."
+                    : "Arrange and tile at least one visible window before saving a layout.",
+                  tone: ok ? "success" : "warning",
+                }),
+              )
+            }
+            type="button"
+          >
+            <strong>Save Current Layout</strong>
+            <span>Capture the current tiled/maximized window arrangement.</span>
+          </button>
+          {getAllLayoutPresets(userLayoutPresets).map((preset) => (
             <button
               aria-label={`Apply ${preset.name} layout`}
               key={preset.id}
@@ -93,6 +113,7 @@ export function SettingsApp() {
               {
                 exportedAt: new Date().toISOString(),
                 files,
+                layoutPresets: userLayoutPresets,
                 notifications,
                 theme,
                 workspace: {

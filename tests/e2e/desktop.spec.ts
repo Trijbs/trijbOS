@@ -176,6 +176,18 @@ test("settings can apply a reusable layout preset", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Notes" })).toHaveAttribute("data-snap", "bottom-right");
 });
 
+test("settings can save the current layout as a custom preset", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  await page.getByRole("button", { name: "Apply Focus Split layout" }).click();
+  await page.getByRole("button", { name: "Save current layout as preset" }).click();
+
+  await launchFromLauncher(page, "custom layout 1");
+  await expect(page.getByRole("dialog", { name: "Notes" })).toHaveAttribute("data-snap", "left");
+  await expect(page.getByRole("dialog", { name: "Terminal" })).toHaveAttribute("data-snap", "right");
+});
+
 test("launcher can apply a reusable layout preset", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "builder");

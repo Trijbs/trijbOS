@@ -1,7 +1,7 @@
 import { appDefinitions } from "./apps";
 import { buildFilePath } from "./file-utils";
-import { layoutPresets, type LayoutPresetId } from "./layout-presets";
-import type { AppId, FileNode } from "./types";
+import { builtinLayoutPresets, type LayoutPresetId } from "./layout-presets";
+import type { LayoutPreset, AppId, FileNode } from "./types";
 
 export type LauncherResult =
   | { id: AppId; kind: "app"; label: string; detail: string; score: number }
@@ -32,7 +32,7 @@ function scoreMatch(label: string, haystack: string, normalizedQuery: string) {
   return -1;
 }
 
-export function buildLauncherResults(files: FileNode[], query: string): LauncherResult[] {
+export function buildLauncherResults(files: FileNode[], query: string, layoutPresets: LayoutPreset[] = builtinLayoutPresets): LauncherResult[] {
   const normalized = query.trim().toLowerCase();
 
   const appResults: LauncherResult[] = Object.values(appDefinitions)

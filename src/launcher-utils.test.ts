@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildLauncherResults } from "./launcher-utils";
-import type { FileNode } from "./types";
+import type { FileNode, LayoutPreset } from "./types";
 
 const files: FileNode[] = [
   {
@@ -52,6 +52,22 @@ describe("launcher utils", () => {
     expect(results[0]).toMatchObject({
       kind: "layout",
       id: "builder",
+    });
+  });
+
+  it("includes custom layout presets in launcher results", () => {
+    const customPresets: LayoutPreset[] = [
+      {
+        id: "custom-1",
+        name: "Custom Layout 1",
+        description: "2 arranged apps.",
+        windows: [{ appId: "notes", snap: "left" }],
+      },
+    ];
+    const results = buildLauncherResults(files, "custom", customPresets);
+    expect(results[0]).toMatchObject({
+      kind: "layout",
+      id: "custom-1",
     });
   });
 });

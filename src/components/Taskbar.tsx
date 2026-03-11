@@ -1,7 +1,7 @@
 import { Bell, LayoutGrid, Search, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { appDefinitions, pinnedApps } from "../apps";
-import { layoutPresets } from "../layout-presets";
+import { getAllLayoutPresets } from "../layout-presets";
 import { useSystemStore } from "../system-store";
 import { formatThemeModeLabel, getActiveDirectoryLabel } from "../taskbar-utils";
 
@@ -18,6 +18,8 @@ export function Taskbar() {
   const toggleNotifications = useSystemStore((state) => state.toggleNotifications);
   const launchApp = useSystemStore((state) => state.launchApp);
   const applyLayoutPreset = useSystemStore((state) => state.applyLayoutPreset);
+  const userLayoutPresets = useSystemStore((state) => state.layoutPresets);
+  const saveCurrentLayoutPreset = useSystemStore((state) => state.saveCurrentLayoutPreset);
   const toggleTaskbarWindow = useSystemStore((state) => state.toggleTaskbarWindow);
   const windows = useSystemStore((state) => state.windows);
   const notifications = useSystemStore((state) => state.notifications);
@@ -94,7 +96,7 @@ export function Taskbar() {
           </button>
           {layoutsOpen ? (
             <div aria-label="Layouts" className="taskbar-layouts-panel">
-              {layoutPresets.map((preset) => (
+              {getAllLayoutPresets(userLayoutPresets).map((preset) => (
                 <button
                   aria-label={`Apply ${preset.name} from taskbar`}
                   key={preset.id}
@@ -108,6 +110,17 @@ export function Taskbar() {
                   <span>{preset.description}</span>
                 </button>
               ))}
+              <button
+                aria-label="Save current layout from taskbar"
+                onClick={() => {
+                  void saveCurrentLayoutPreset();
+                  setLayoutsOpen(false);
+                }}
+                type="button"
+              >
+                <strong>Save Current Layout</strong>
+                <span>Store the current tiled workspace for later reuse.</span>
+              </button>
             </div>
           ) : null}
         </div>
