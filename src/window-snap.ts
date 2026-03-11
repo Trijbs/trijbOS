@@ -1,6 +1,19 @@
 import type { WindowBounds } from "./types";
 
 export const SNAP_EDGE_THRESHOLD = 36;
+export type DragSnapTarget = "left" | "right" | "maximize";
+
+export function getMaximizedBounds(
+  viewportWidth: number,
+  viewportHeight: number,
+): WindowBounds {
+  return {
+    x: 12,
+    y: 12,
+    width: viewportWidth - 24,
+    height: viewportHeight - 88,
+  };
+}
 
 export function getSnapBounds(
   snap: "left" | "right",
@@ -18,9 +31,14 @@ export function getSnapBounds(
 
 export function getDragSnapTarget(
   x: number,
+  y: number,
   width: number,
   viewportWidth: number,
-): "left" | "right" | null {
+): DragSnapTarget | null {
+  if (y <= SNAP_EDGE_THRESHOLD) {
+    return "maximize";
+  }
+
   if (x <= SNAP_EDGE_THRESHOLD) {
     return "left";
   }

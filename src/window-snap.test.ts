@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getDragSnapTarget, getSnapBounds, getUnsnapBounds } from "./window-snap";
+import {
+  getDragSnapTarget,
+  getMaximizedBounds,
+  getSnapBounds,
+  getUnsnapBounds,
+} from "./window-snap";
 
 describe("window snap helpers", () => {
   it("computes left snap bounds for the current viewport", () => {
@@ -20,16 +25,29 @@ describe("window snap helpers", () => {
     });
   });
 
+  it("computes maximized bounds for the current viewport", () => {
+    expect(getMaximizedBounds(1440, 900)).toEqual({
+      x: 12,
+      y: 12,
+      width: 1416,
+      height: 812,
+    });
+  });
+
   it("detects a left edge drag target", () => {
-    expect(getDragSnapTarget(20, 480, 1440)).toBe("left");
+    expect(getDragSnapTarget(20, 120, 480, 1440)).toBe("left");
   });
 
   it("detects a right edge drag target", () => {
-    expect(getDragSnapTarget(1004, 420, 1440)).toBe("right");
+    expect(getDragSnapTarget(1004, 120, 420, 1440)).toBe("right");
   });
 
   it("ignores drags away from snap edges", () => {
-    expect(getDragSnapTarget(240, 480, 1440)).toBeNull();
+    expect(getDragSnapTarget(240, 120, 480, 1440)).toBeNull();
+  });
+
+  it("detects a top edge drag target for maximize", () => {
+    expect(getDragSnapTarget(240, 18, 480, 1440)).toBe("maximize");
   });
 
   it("releases a left snapped window into floating bounds", () => {
