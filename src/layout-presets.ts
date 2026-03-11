@@ -18,6 +18,12 @@ export type LayoutPreset = {
   windows: LayoutPresetWindow[];
 };
 
+export type LayoutPresetSection = {
+  id: "pinned" | "custom" | "built-in";
+  label: string;
+  presets: LayoutPreset[];
+};
+
 export const builtinLayoutPresets: LayoutPreset[] = [
   {
     id: "focus",
@@ -49,6 +55,37 @@ export function getAllLayoutPresets(userPresets: LayoutPreset[] = []) {
   });
 
   return [...sortedUserPresets, ...builtinLayoutPresets];
+}
+
+export function getLayoutPresetSections(userPresets: LayoutPreset[] = []): LayoutPresetSection[] {
+  const sortedUserPresets = [...userPresets].sort((left, right) => left.name.localeCompare(right.name));
+  const pinned = sortedUserPresets.filter((preset) => preset.pinned);
+  const custom = sortedUserPresets.filter((preset) => !preset.pinned);
+  const sections: LayoutPresetSection[] = [];
+
+  if (pinned.length > 0) {
+    sections.push({
+      id: "pinned",
+      label: "Pinned Layouts",
+      presets: pinned,
+    });
+  }
+
+  if (custom.length > 0) {
+    sections.push({
+      id: "custom",
+      label: "Custom Layouts",
+      presets: custom,
+    });
+  }
+
+  sections.push({
+    id: "built-in",
+    label: "Built-in Layouts",
+    presets: builtinLayoutPresets,
+  });
+
+  return sections;
 }
 
 export function createLayoutPresetFromWindows(

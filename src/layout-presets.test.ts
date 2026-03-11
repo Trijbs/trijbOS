@@ -4,6 +4,7 @@ import {
   builtinLayoutPresets,
   createLayoutPresetFromWindows,
   getAllLayoutPresets,
+  getLayoutPresetSections,
 } from "./layout-presets";
 import type { WindowState } from "./types";
 
@@ -103,5 +104,29 @@ describe("layout presets", () => {
     ]);
 
     expect(presets[0]?.id).toBe("custom-1");
+  });
+
+  it("groups pinned, custom, and built-in layouts into separate sections", () => {
+    const sections = getLayoutPresetSections([
+      {
+        id: "custom-2",
+        name: "Writing",
+        description: "2 arranged apps.",
+        pinned: false,
+        windows: [{ appId: "notes", snap: "left" }],
+      },
+      {
+        id: "custom-1",
+        name: "Build",
+        description: "2 arranged apps.",
+        pinned: true,
+        windows: [{ appId: "terminal", snap: "right" }],
+      },
+    ]);
+
+    expect(sections.map((section) => section.id)).toEqual(["pinned", "custom", "built-in"]);
+    expect(sections[0]?.presets.map((preset) => preset.id)).toEqual(["custom-1"]);
+    expect(sections[1]?.presets.map((preset) => preset.id)).toEqual(["custom-2"]);
+    expect(sections[2]?.presets.map((preset) => preset.id)).toEqual(["focus", "builder"]);
   });
 });

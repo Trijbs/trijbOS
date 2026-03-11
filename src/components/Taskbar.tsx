@@ -1,7 +1,7 @@
 import { Bell, LayoutGrid, Search, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { appDefinitions, pinnedApps } from "../apps";
-import { getAllLayoutPresets, isCustomLayoutPreset } from "../layout-presets";
+import { getLayoutPresetSections, isCustomLayoutPreset } from "../layout-presets";
 import { useSystemStore } from "../system-store";
 import { formatThemeModeLabel, getActiveDirectoryLabel } from "../taskbar-utils";
 
@@ -98,40 +98,48 @@ export function Taskbar() {
           </button>
           {layoutsOpen ? (
             <div aria-label="Layouts" className="taskbar-layouts-panel">
-              {getAllLayoutPresets(userLayoutPresets).map((preset) => (
-                <div className="taskbar-layout-entry" key={preset.id}>
-                  <button
-                    aria-label={`Apply ${preset.name} from taskbar`}
-                    onClick={() => {
-                      applyLayoutPreset(preset.id);
-                      setLayoutsOpen(false);
-                    }}
-                    type="button"
-                  >
-                    <strong>{preset.name}</strong>
-                    <span>{preset.description}</span>
-                  </button>
-                  {isCustomLayoutPreset(preset.id) ? (
-                    <div className="taskbar-layout-meta">
+              {getLayoutPresetSections(userLayoutPresets).map((section) => (
+                <section className="taskbar-layout-section" key={section.id}>
+                  <div className="taskbar-layout-section-header">
+                    <strong>{section.label}</strong>
+                    <span>{section.presets.length}</span>
+                  </div>
+                  {section.presets.map((preset) => (
+                    <div className="taskbar-layout-entry" key={preset.id}>
                       <button
-                        aria-label={`${preset.pinned ? "Unpin" : "Pin"} ${preset.name} from taskbar`}
-                        className="taskbar-layout-delete"
-                        onClick={() => void togglePinLayoutPreset(preset.id)}
+                        aria-label={`Apply ${preset.name} from taskbar`}
+                        onClick={() => {
+                          applyLayoutPreset(preset.id);
+                          setLayoutsOpen(false);
+                        }}
                         type="button"
                       >
-                        {preset.pinned ? "Unpin" : "Pin"}
+                        <strong>{preset.name}</strong>
+                        <span>{preset.description}</span>
                       </button>
-                      <button
-                        aria-label={`Delete ${preset.name} from taskbar`}
-                        className="taskbar-layout-delete"
-                        onClick={() => void deleteLayoutPreset(preset.id)}
-                        type="button"
-                      >
-                        Remove
-                      </button>
+                      {isCustomLayoutPreset(preset.id) ? (
+                        <div className="taskbar-layout-meta">
+                          <button
+                            aria-label={`${preset.pinned ? "Unpin" : "Pin"} ${preset.name} from taskbar`}
+                            className="taskbar-layout-delete"
+                            onClick={() => void togglePinLayoutPreset(preset.id)}
+                            type="button"
+                          >
+                            {preset.pinned ? "Unpin" : "Pin"}
+                          </button>
+                          <button
+                            aria-label={`Delete ${preset.name} from taskbar`}
+                            className="taskbar-layout-delete"
+                            onClick={() => void deleteLayoutPreset(preset.id)}
+                            type="button"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
-                  ) : null}
-                </div>
+                  ))}
+                </section>
               ))}
               <button
                 aria-label="Save current layout from taskbar"

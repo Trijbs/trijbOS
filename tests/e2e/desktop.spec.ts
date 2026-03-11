@@ -212,7 +212,10 @@ test("pinned custom layouts rise to the top of layout lists", async ({ page }) =
   await page.getByRole("button", { name: "Save current layout as preset" }).click();
   await page.getByRole("button", { name: "Pin Custom Layout 1 layout" }).click();
 
-  const layoutButtons = page.locator(".layout-presets").getByRole("button", { name: /Apply .* layout/ });
+  await expect(page.getByRole("heading", { name: "Pinned Layouts" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Built-in Layouts" })).toBeVisible();
+
+  const layoutButtons = page.locator(".layout-preset-section").first().getByRole("button", { name: /Apply .* layout/ });
   await expect(layoutButtons.first()).toHaveAccessibleName("Apply Custom Layout 1 layout");
 });
 
@@ -229,6 +232,7 @@ test("taskbar can apply a reusable layout preset", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Open layouts" }).click();
   await expect(page.locator(".taskbar-layouts-panel")).toBeVisible();
+  await expect(page.locator(".taskbar-layout-section-header").filter({ hasText: "Built-in Layouts" })).toBeVisible();
   await page.getByRole("button", { name: "Apply Focus Split from taskbar" }).click();
 
   await expect(page.getByRole("dialog", { name: "Notes" })).toHaveAttribute("data-snap", "left");

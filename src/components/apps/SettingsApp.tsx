@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { getAllLayoutPresets, isCustomLayoutPreset } from "../../layout-presets";
+import { getLayoutPresetSections, isCustomLayoutPreset } from "../../layout-presets";
 import { useSystemStore } from "../../system-store";
 import { accentOptions, wallpaperOptions } from "../../theme-options";
 
@@ -92,90 +92,100 @@ export function SettingsApp() {
             <strong>Save Current Layout</strong>
             <span>Capture the current tiled/maximized window arrangement.</span>
           </button>
-          {getAllLayoutPresets(userLayoutPresets).map((preset) => (
-            <div className="layout-preset-card" key={preset.id}>
-              <button
-                aria-label={`Apply ${preset.name} layout`}
-                onClick={() => {
-                  applyLayoutPreset(preset.id);
-                  void pushNotification({
-                    title: "Layout applied",
-                    body: `${preset.name} arranged your open apps.`,
-                    tone: "success",
-                  });
-                }}
-                type="button"
-              >
-                <strong>{preset.name}</strong>
-                <span>{preset.description}</span>
-              </button>
-              {isCustomLayoutPreset(preset.id) ? (
-                <div className="layout-preset-actions">
-                  {editingPresetId === preset.id ? (
-                    <>
-                      <input
-                        aria-label={`Edit ${preset.name} layout name`}
-                        autoFocus
-                        className="inline-input"
-                        onChange={(event) => setEditingPresetName(event.target.value)}
-                        value={editingPresetName}
-                      />
-                      <button
-                        aria-label={`Save ${preset.name} layout name`}
-                        onClick={() => {
-                          void renameLayoutPreset(preset.id, editingPresetName).then((ok) => {
-                            if (!ok) {
-                              return;
-                            }
-                            setEditingPresetId(null);
-                            setEditingPresetName("");
-                          });
-                        }}
-                        type="button"
-                      >
-                        Save
-                      </button>
-                      <button
-                        aria-label={`Cancel renaming ${preset.name} layout`}
-                        onClick={() => {
-                          setEditingPresetId(null);
-                          setEditingPresetName("");
-                        }}
-                        type="button"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        aria-label={`${preset.pinned ? "Unpin" : "Pin"} ${preset.name} layout`}
-                        onClick={() => void togglePinLayoutPreset(preset.id)}
-                        type="button"
-                      >
-                        {preset.pinned ? "Unpin" : "Pin"}
-                      </button>
-                      <button
-                        aria-label={`Rename ${preset.name} layout`}
-                        onClick={() => {
-                          setEditingPresetId(preset.id);
-                          setEditingPresetName(preset.name);
-                        }}
-                        type="button"
-                      >
-                        Rename
-                      </button>
-                    </>
-                  )}
-                  <button
-                    aria-label={`Delete ${preset.name} layout`}
-                    onClick={() => void deleteLayoutPreset(preset.id)}
-                    type="button"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ) : null}
+          {getLayoutPresetSections(userLayoutPresets).map((section) => (
+            <div className="layout-preset-section" key={section.id}>
+              <div className="layout-preset-section-header">
+                <h4>{section.label}</h4>
+                <span>{section.presets.length}</span>
+              </div>
+              <div className="layout-preset-section-grid">
+                {section.presets.map((preset) => (
+                  <div className="layout-preset-card" key={preset.id}>
+                    <button
+                      aria-label={`Apply ${preset.name} layout`}
+                      onClick={() => {
+                        applyLayoutPreset(preset.id);
+                        void pushNotification({
+                          title: "Layout applied",
+                          body: `${preset.name} arranged your open apps.`,
+                          tone: "success",
+                        });
+                      }}
+                      type="button"
+                    >
+                      <strong>{preset.name}</strong>
+                      <span>{preset.description}</span>
+                    </button>
+                    {isCustomLayoutPreset(preset.id) ? (
+                      <div className="layout-preset-actions">
+                        {editingPresetId === preset.id ? (
+                          <>
+                            <input
+                              aria-label={`Edit ${preset.name} layout name`}
+                              autoFocus
+                              className="inline-input"
+                              onChange={(event) => setEditingPresetName(event.target.value)}
+                              value={editingPresetName}
+                            />
+                            <button
+                              aria-label={`Save ${preset.name} layout name`}
+                              onClick={() => {
+                                void renameLayoutPreset(preset.id, editingPresetName).then((ok) => {
+                                  if (!ok) {
+                                    return;
+                                  }
+                                  setEditingPresetId(null);
+                                  setEditingPresetName("");
+                                });
+                              }}
+                              type="button"
+                            >
+                              Save
+                            </button>
+                            <button
+                              aria-label={`Cancel renaming ${preset.name} layout`}
+                              onClick={() => {
+                                setEditingPresetId(null);
+                                setEditingPresetName("");
+                              }}
+                              type="button"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              aria-label={`${preset.pinned ? "Unpin" : "Pin"} ${preset.name} layout`}
+                              onClick={() => void togglePinLayoutPreset(preset.id)}
+                              type="button"
+                            >
+                              {preset.pinned ? "Unpin" : "Pin"}
+                            </button>
+                            <button
+                              aria-label={`Rename ${preset.name} layout`}
+                              onClick={() => {
+                                setEditingPresetId(preset.id);
+                                setEditingPresetName(preset.name);
+                              }}
+                              type="button"
+                            >
+                              Rename
+                            </button>
+                          </>
+                        )}
+                        <button
+                          aria-label={`Delete ${preset.name} layout`}
+                          onClick={() => void deleteLayoutPreset(preset.id)}
+                          type="button"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
