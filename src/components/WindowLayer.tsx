@@ -3,6 +3,7 @@ import { Rnd } from "react-rnd";
 import { Minus, PanelLeft, PanelRight, Square, X } from "lucide-react";
 import { appDefinitions } from "../apps";
 import { useSystemStore } from "../system-store";
+import { getAssistCandidates, getAssistTargets } from "../window-assist";
 import {
   getDragSnapTarget,
   getMaximizedBounds,
@@ -81,6 +82,11 @@ export function WindowLayer() {
   const maximizeWindow = useSystemStore((state) => state.maximizeWindow);
   const snapWindow = useSystemStore((state) => state.snapWindow);
   const updateWindowBounds = useSystemStore((state) => state.updateWindowBounds);
+  const assistWindow = useMemo(() => windows.find((item) => item.id === topWindowId) ?? null, [topWindowId, windows]);
+  const assistCandidates = useMemo(
+    () => (assistWindow?.snap ? getAssistCandidates(windows, assistWindow.id) : []),
+    [assistWindow, windows],
+  );
 
   return (
     <div className="window-layer">
@@ -93,6 +99,42 @@ export function WindowLayer() {
               : getSnapBounds(dragPreview.target, window.innerWidth, window.innerHeight)
           }
         />
+      ) : null}
+      {assistWindow?.snap && assistCandidates.length > 0 ? (
+        <aside aria-label="Snap assist" className="snap-assist">
+          <div className="snap-assist-header">
+            <strong>Snap Assist</strong>
+            <span>Place another app into the remaining space.</span>
+          </div>
+          <div className="snap-assist-list">
+            {assistCandidates.map((candidate) => {
+              const Icon = appDefinitions[candidate.appId].icon;
+              return (
+                <article className="snap-assist-card" key={candidate.id}>
+                  <div className="snap-assist-card-title">
+                    <Icon size={16} />
+                    <span>{candidate.title}</span>
+                  </div>
+                  <div className="snap-assist-actions">
+                    {getAssistTargets(assistWindow.snap).map((target) => (
+                      <button
+                        aria-label={`Place ${candidate.title} in ${target}`}
+                        key={target}
+                        onClick={() => {
+                          focusWindow(candidate.id);
+                          snapWindow(candidate.id, target);
+                        }}
+                        type="button"
+                      >
+                        {target}
+                      </button>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </aside>
       ) : null}
       {windows.map((windowState) => {
         const app = appDefinitions[windowState.appId];

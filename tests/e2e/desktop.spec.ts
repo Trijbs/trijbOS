@@ -151,6 +151,21 @@ test("window snap buttons toggle left and right snapped states", async ({ page }
   await expect(terminalWindow).toHaveAttribute("data-snap", "right");
 });
 
+test("snap assist places another open app into the remaining layout space", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "terminal");
+  await launchFromLauncher(page, "notes");
+
+  const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
+  const notesWindow = page.getByRole("dialog", { name: "Notes" });
+
+  await page.getByRole("contentinfo").getByRole("button", { name: "Terminal" }).click();
+  await terminalWindow.getByRole("button", { name: "Snap Terminal left" }).click();
+  await expect(page.getByLabel("Snap assist")).toBeVisible();
+  await page.getByRole("button", { name: "Place Notes in right" }).click();
+  await expect(notesWindow).toHaveAttribute("data-snap", "right");
+});
+
 test("keyboard shortcuts snap the active window left and right", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "terminal");
@@ -226,7 +241,7 @@ test("dragging a window into the bottom-right corner quarter tiles it", async ({
   await launchFromLauncher(page, "terminal");
 
   const terminalWindow = page.getByRole("dialog", { name: "Terminal" });
-  await dragWindowTitlebar(page, "Terminal", { x: 520, y: 520 });
+  await dragWindowTitlebar(page, "Terminal", { x: 820, y: 720 });
   await expect(terminalWindow).toHaveAttribute("data-snap", "bottom-right");
 });
 

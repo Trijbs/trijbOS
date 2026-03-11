@@ -157,6 +157,77 @@ button {
   z-index: 999;
 }
 
+.snap-assist {
+  backdrop-filter: blur(18px);
+  background: rgba(10, 14, 22, 0.72);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+  display: grid;
+  gap: 14px;
+  max-width: 320px;
+  padding: 16px;
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  z-index: 998;
+}
+
+.snap-assist-header,
+.snap-assist-card-title,
+.snap-assist-actions {
+  display: flex;
+}
+
+.snap-assist-header {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.snap-assist-header span {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.snap-assist-list {
+  display: grid;
+  gap: 10px;
+}
+
+.snap-assist-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.snap-assist-card-title,
+.snap-assist-actions {
+  align-items: center;
+  gap: 8px;
+}
+
+.snap-assist-actions {
+  flex-wrap: wrap;
+}
+
+.snap-assist-actions button {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: inherit;
+  padding: 6px 10px;
+  text-transform: capitalize;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.snap-assist-actions button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
 .window-frame {
   backdrop-filter: blur(18px);
   background: var(--surface);
