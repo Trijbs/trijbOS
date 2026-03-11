@@ -1,7 +1,7 @@
 import { Bell, LayoutGrid, Search, Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { appDefinitions, pinnedApps } from "../apps";
-import { getAllLayoutPresets } from "../layout-presets";
+import { getAllLayoutPresets, isCustomLayoutPreset } from "../layout-presets";
 import { useSystemStore } from "../system-store";
 import { formatThemeModeLabel, getActiveDirectoryLabel } from "../taskbar-utils";
 
@@ -20,6 +20,7 @@ export function Taskbar() {
   const applyLayoutPreset = useSystemStore((state) => state.applyLayoutPreset);
   const userLayoutPresets = useSystemStore((state) => state.layoutPresets);
   const saveCurrentLayoutPreset = useSystemStore((state) => state.saveCurrentLayoutPreset);
+  const deleteLayoutPreset = useSystemStore((state) => state.deleteLayoutPreset);
   const toggleTaskbarWindow = useSystemStore((state) => state.toggleTaskbarWindow);
   const windows = useSystemStore((state) => state.windows);
   const notifications = useSystemStore((state) => state.notifications);
@@ -97,18 +98,29 @@ export function Taskbar() {
           {layoutsOpen ? (
             <div aria-label="Layouts" className="taskbar-layouts-panel">
               {getAllLayoutPresets(userLayoutPresets).map((preset) => (
-                <button
-                  aria-label={`Apply ${preset.name} from taskbar`}
-                  key={preset.id}
-                  onClick={() => {
-                    applyLayoutPreset(preset.id);
-                    setLayoutsOpen(false);
-                  }}
-                  type="button"
-                >
-                  <strong>{preset.name}</strong>
-                  <span>{preset.description}</span>
-                </button>
+                <div className="taskbar-layout-entry" key={preset.id}>
+                  <button
+                    aria-label={`Apply ${preset.name} from taskbar`}
+                    onClick={() => {
+                      applyLayoutPreset(preset.id);
+                      setLayoutsOpen(false);
+                    }}
+                    type="button"
+                  >
+                    <strong>{preset.name}</strong>
+                    <span>{preset.description}</span>
+                  </button>
+                  {isCustomLayoutPreset(preset.id) ? (
+                    <button
+                      aria-label={`Delete ${preset.name} from taskbar`}
+                      className="taskbar-layout-delete"
+                      onClick={() => void deleteLayoutPreset(preset.id)}
+                      type="button"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
               ))}
               <button
                 aria-label="Save current layout from taskbar"

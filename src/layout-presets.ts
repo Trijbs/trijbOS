@@ -70,6 +70,10 @@ export function createLayoutPresetFromWindows(
   };
 }
 
+export function isCustomLayoutPreset(presetId: LayoutPresetId) {
+  return presetId.startsWith("custom-");
+}
+
 function getOrCreateWindowForApp(
   windows: WindowState[],
   appId: AppId,

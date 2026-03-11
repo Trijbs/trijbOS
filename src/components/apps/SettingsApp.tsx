@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { getAllLayoutPresets } from "../../layout-presets";
+import { getAllLayoutPresets, isCustomLayoutPreset } from "../../layout-presets";
 import { useSystemStore } from "../../system-store";
 import { accentOptions, wallpaperOptions } from "../../theme-options";
 
@@ -18,6 +18,8 @@ export function SettingsApp() {
   const pushNotification = useSystemStore((state) => state.pushNotification);
   const applyLayoutPreset = useSystemStore((state) => state.applyLayoutPreset);
   const saveCurrentLayoutPreset = useSystemStore((state) => state.saveCurrentLayoutPreset);
+  const renameLayoutPreset = useSystemStore((state) => state.renameLayoutPreset);
+  const deleteLayoutPreset = useSystemStore((state) => state.deleteLayoutPreset);
 
   return (
     <div className="app-pane settings-app">
@@ -88,22 +90,47 @@ export function SettingsApp() {
             <span>Capture the current tiled/maximized window arrangement.</span>
           </button>
           {getAllLayoutPresets(userLayoutPresets).map((preset) => (
-            <button
-              aria-label={`Apply ${preset.name} layout`}
-              key={preset.id}
-              onClick={() => {
-                applyLayoutPreset(preset.id);
-                void pushNotification({
-                  title: "Layout applied",
-                  body: `${preset.name} arranged your open apps.`,
-                  tone: "success",
-                });
-              }}
-              type="button"
-            >
-              <strong>{preset.name}</strong>
-              <span>{preset.description}</span>
-            </button>
+            <div className="layout-preset-card" key={preset.id}>
+              <button
+                aria-label={`Apply ${preset.name} layout`}
+                onClick={() => {
+                  applyLayoutPreset(preset.id);
+                  void pushNotification({
+                    title: "Layout applied",
+                    body: `${preset.name} arranged your open apps.`,
+                    tone: "success",
+                  });
+                }}
+                type="button"
+              >
+                <strong>{preset.name}</strong>
+                <span>{preset.description}</span>
+              </button>
+              {isCustomLayoutPreset(preset.id) ? (
+                <div className="layout-preset-actions">
+                  <button
+                    aria-label={`Rename ${preset.name} layout`}
+                    onClick={() => {
+                      const nextName = window.prompt("Rename layout preset", preset.name);
+                      if (!nextName) {
+                        return;
+                      }
+                      void renameLayoutPreset(preset.id, nextName);
+                    }}
+                    type="button"
+                  >
+                    Rename
+                  </button>
+                  <button
+                    aria-label={`Delete ${preset.name} layout`}
+                    onClick={() => void deleteLayoutPreset(preset.id)}
+                    type="button"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ) : null}
+            </div>
           ))}
         </div>
         <button

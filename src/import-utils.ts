@@ -43,6 +43,7 @@ export function isDesktopSnapshot(input: unknown): input is DesktopSnapshot {
     Array.isArray(candidate.files) &&
     Array.isArray(candidate.notifications) &&
     Array.isArray(candidate.windows) &&
+    (candidate.layoutPresets === undefined || Array.isArray(candidate.layoutPresets)) &&
     (candidate.workspace === undefined ||
       (typeof candidate.workspace === "object" &&
         candidate.workspace !== null &&

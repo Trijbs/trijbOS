@@ -97,6 +97,8 @@ type SystemState = {
   snapTopWindow: (snap: "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right") => void;
   applyLayoutPreset: (presetId: LayoutPresetId) => void;
   saveCurrentLayoutPreset: () => Promise<boolean>;
+  renameLayoutPreset: (presetId: LayoutPresetId, name: string) => Promise<boolean>;
+  deleteLayoutPreset: (presetId: LayoutPresetId) => Promise<boolean>;
   updateWindowBounds: (id: string, bounds: WindowBounds) => void;
   restoreWindow: (id: string) => void;
   closeTopWindow: () => void;
@@ -339,6 +341,29 @@ export const useSystemStore = create<SystemState>((set, get) => ({
     }
 
     const nextPresets = [...layoutPresets, nextPreset];
+    set({ layoutPresets: nextPresets });
+    await enqueuePersistence(() => saveLayoutPresets(nextPresets));
+    return true;
+  },
+  async renameLayoutPreset(presetId, name) {
+    const trimmedName = name.trim();
+    if (!trimmedName || !presetId.startsWith("custom-")) {
+      return false;
+    }
+
+    const nextPresets = get().layoutPresets.map((preset) =>
+      preset.id === presetId ? { ...preset, name: trimmedName } : preset,
+    );
+    set({ layoutPresets: nextPresets });
+    await enqueuePersistence(() => saveLayoutPresets(nextPresets));
+    return true;
+  },
+  async deleteLayoutPreset(presetId) {
+    if (!presetId.startsWith("custom-")) {
+      return false;
+    }
+
+    const nextPresets = get().layoutPresets.filter((preset) => preset.id !== presetId);
     set({ layoutPresets: nextPresets });
     await enqueuePersistence(() => saveLayoutPresets(nextPresets));
     return true;

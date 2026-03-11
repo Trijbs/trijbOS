@@ -188,6 +188,21 @@ test("settings can save the current layout as a custom preset", async ({ page })
   await expect(page.getByRole("dialog", { name: "Terminal" })).toHaveAttribute("data-snap", "right");
 });
 
+test("settings can rename and delete a custom layout preset", async ({ page }) => {
+  await page.goto("/");
+  await launchFromLauncher(page, "settings");
+
+  await page.getByRole("button", { name: "Apply Focus Split layout" }).click();
+  await page.getByRole("button", { name: "Save current layout as preset" }).click();
+
+  page.once("dialog", (dialog) => dialog.accept("Writing Rig"));
+  await page.getByRole("button", { name: "Rename Custom Layout 1 layout" }).click();
+  await expect(page.getByRole("button", { name: "Apply Writing Rig layout" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Delete Writing Rig layout" }).click();
+  await expect(page.getByRole("button", { name: "Apply Writing Rig layout" })).toHaveCount(0);
+});
+
 test("launcher can apply a reusable layout preset", async ({ page }) => {
   await page.goto("/");
   await launchFromLauncher(page, "builder");

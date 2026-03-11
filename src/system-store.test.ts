@@ -189,6 +189,46 @@ describe("system store", () => {
     expect(storageMocks.saveLayoutPresets).toHaveBeenCalledTimes(1);
   });
 
+  it("renames a custom layout preset", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      layoutPresets: [
+        {
+          id: "custom-1",
+          name: "Custom Layout 1",
+          description: "2 arranged apps.",
+          windows: [{ appId: "notes", snap: "left" }],
+        },
+      ],
+    });
+
+    const renamed = await useSystemStore.getState().renameLayoutPreset("custom-1", "Writers");
+
+    expect(renamed).toBe(true);
+    expect(useSystemStore.getState().layoutPresets[0]?.name).toBe("Writers");
+  });
+
+  it("deletes a custom layout preset", async () => {
+    const { useSystemStore } = await import("./system-store");
+
+    useSystemStore.setState({
+      layoutPresets: [
+        {
+          id: "custom-1",
+          name: "Custom Layout 1",
+          description: "2 arranged apps.",
+          windows: [{ appId: "notes", snap: "left" }],
+        },
+      ],
+    });
+
+    const removed = await useSystemStore.getState().deleteLayoutPreset("custom-1");
+
+    expect(removed).toBe(true);
+    expect(useSystemStore.getState().layoutPresets).toHaveLength(0);
+  });
+
   it("opens the launcher as an exclusive overlay", async () => {
     const { useSystemStore } = await import("./system-store");
 

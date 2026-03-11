@@ -436,6 +436,34 @@ button {
   text-align: left;
 }
 
+.layout-preset-card {
+  display: grid;
+  gap: 8px;
+}
+
+.layout-preset-actions,
+.taskbar-layout-entry {
+  display: flex;
+  gap: 8px;
+}
+
+.layout-preset-actions button,
+.taskbar-layout-delete {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: inherit;
+  padding: 8px 10px;
+}
+
+.taskbar-layout-entry {
+  align-items: flex-start;
+}
+
+.taskbar-layout-entry > button:first-child {
+  flex: 1;
+}
+
 .layout-presets button span {
   color: var(--text-muted);
   font-size: 0.85rem;
